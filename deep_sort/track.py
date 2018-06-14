@@ -80,6 +80,8 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
 
+        self.det_conf = None
+
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
@@ -108,6 +110,9 @@ class Track:
         ret = self.to_tlwh()
         ret[2:] = ret[:2] + ret[2:]
         return ret
+
+    def get_det_conf(self):
+        return 
 
     def predict(self, kf):
         """Propagate the state distribution to the current time step using a
@@ -138,6 +143,8 @@ class Track:
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
+        # print("CONFIDENCE:",detection.confidence)
+        self.det_conf = detection.confidence
         # print('appending feature', len(detection.feature))
         self.hits += 1
         # print('track hits += 1')

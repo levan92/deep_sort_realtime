@@ -87,3 +87,11 @@ ENV/
 
 # Rope project settings
 .ropeproject
+*.mp4
+
+# old code from source
+deep_sort_master.py
+deep_sort_app.py
+
+resources/
+tools/
