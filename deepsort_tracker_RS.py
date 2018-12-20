@@ -10,8 +10,8 @@ import numpy as np
 from .application_util import preprocessing
 from .application_util import visualization
 from .deep_sort import nn_matching
-from .deep_sort.detection import Detection
-from .deep_sort.tracker import Tracker
+from .deep_sort.detection_RS import Detection_RS
+from .deep_sort.tracker_RS import Tracker_RS
 
 class DeepSort(object):
 
@@ -27,7 +27,7 @@ class DeepSort(object):
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
-        self.tracker = Tracker(metric, max_age = max_age)
+        self.tracker = Tracker_RS(metric, max_age = max_age)
 
     def update_tracks(self, frame, raw_detections, embeds):
 
@@ -52,11 +52,11 @@ class DeepSort(object):
     def create_detections(self, detections, embeds):
         detection_list = []
         for i in range(len(detections)):
-            _, confidence, ltrb = detections[i]
+            cl, confidence, ltrb = detections[i]
 
             # in LTWH
             bbox = [ ltrb[0], ltrb[1], 
                     (ltrb[2] - ltrb[0] + 1), 
                     (ltrb[3] - ltrb[1] + 1) ]
-            detection_list.append(Detection(bbox, confidence, embeds[i]))
+            detection_list.append(Detection_RS(cl.decode("utf-8"), bbox, confidence, embeds[i]))
         return detection_list
