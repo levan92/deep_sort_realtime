@@ -8,6 +8,8 @@ class Detection_RS(object):
 
     Parameters
     ----------
+    det_class : string
+        Storage space for class name  
     tlwh : array_like
         Bounding box in format `(x, y, w, h)`.
     confidence : float

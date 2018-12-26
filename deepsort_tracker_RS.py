@@ -47,7 +47,7 @@ class DeepSort(object):
         self.tracker.predict()
         self.tracker.update(detections)
 
-        return self.tracker.tracks
+        return self.tracker.tracks, self.tracker.del_tracks_ids
 
     def create_detections(self, detections, embeds):
         detection_list = []
