@@ -1,6 +1,7 @@
 import torch
 from torchvision.transforms import transforms
 import cv2
+import math
 # import time
 import os 
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -49,6 +50,8 @@ class MobileNetv2_Embedder(object):
         self.model.cuda() #loads model to gpu
         self.model.eval() #inference mode, deactivates dropout layers 
         print('MobileNetV2 Embedder for Deep Sort initialised!')
+        self.model.forward(torch.zeros(8, 3, INPUT_WIDTH, INPUT_WIDTH).cuda()) #warmup
+
 
     def predict(self, np_image_bgr_batch, batch_size = 16):
         '''
@@ -74,8 +77,9 @@ class MobileNetv2_Embedder(object):
             split_batches.append(np_image_bgr_batch[i:i+batch_size])
         all_feats = []
         remainder = total_size
+        print(len(split_batches))
         # For each batch
-        for i in range(total_size // batch_size + 1):
+        for i in range(math.ceil(total_size / batch_size)):
             input_batch = torch.zeros((min(batch_size, remainder), 3, INPUT_WIDTH, INPUT_WIDTH))
             # For each img in batch
             for k, img in enumerate(split_batches[i]):
@@ -97,17 +101,39 @@ if __name__ == '__main__':
     import time
     impath = '/home/levan/Pictures/auba.jpg'
     auba = cv2.imread(impath)
-    aubas = [auba] * 1
     
     tic = time.time()
     emb = MobileNetv2_Embedder()
     toc = time.time()
     print('loading time: {}s'.format(toc - tic))
 
+    aubas = [auba] * 1
     tic = time.time()
     feats = emb.predict(aubas)
     toc = time.time()
-    print('inference time: {}s'.format(toc - tic))
-    
-    print(feats)
+    print('inference 1 time: {}s'.format(toc - tic))
     print(np.shape(feats))
+
+    aubas = [auba] * 8
+    tic = time.time()
+    feats = emb.predict(aubas)
+    toc = time.time()
+    print('inference 8 time: {}s'.format(toc - tic))
+    print(np.shape(feats))
+    
+    aubas = [auba] * 16
+    tic = time.time()
+    feats = emb.predict(aubas)
+    toc = time.time()
+    print('inference 16 time: {}s'.format(toc - tic))
+    print(np.shape(feats))
+
+    aubas = [auba] * 32
+    tic = time.time()
+    feats = emb.predict(aubas)
+    toc = time.time()
+    print('inference 32 time: {}s'.format(toc - tic))
+    print(np.shape(feats))
+
+
+    # print(feats)
