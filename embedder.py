@@ -7,7 +7,7 @@ import os
 DIR = os.path.dirname(os.path.realpath(__file__))
 
 MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")
-INPUT_WIDTH = 112
+INPUT_WIDTH = 224
 
 def preprocess(np_image_bgr):
     '''
@@ -23,19 +23,28 @@ def preprocess(np_image_bgr):
     Torch Tensor
 
     '''
-    np_image_rgb = np_image_bgr[...,::-1]
-    np_image_rgb = cv2.resize(np_image_rgb, (INPUT_WIDTH, INPUT_WIDTH))
-    preproc = transforms.Compose([
-        transforms.ToTensor(),
-        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-    ])
     # tic = time.time()
-    input_image = preproc(np_image_rgb)
+    np_image_rgb = np_image_bgr[...,::-1]
     # toc = time.time()
-    # print('preproc time: {}s'.format(toc - tic))
-
+    # print('flip channel time: {}s'.format(toc - tic))
+    # tic = time.time()
+    np_image_rgb = cv2.resize(np_image_rgb, (INPUT_WIDTH, INPUT_WIDTH))
+    # toc = time.time()
+    # print('resize time: {}s'.format(toc - tic))
+    # preproc = transforms.Compose([
+    #     transforms.ToTensor(),
+    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    # ])
+    # tic = time.time()
+    input_image = transforms.ToTensor()(np_image_rgb)
+    # input_image = preproc(np_image_rgb)
+    # toc = time.time()
+    # print('toTorchTensor & Norm time: {}s'.format(toc - tic))
+    # tic = time.time()
     input_image = input_image.view(1,3,INPUT_WIDTH,INPUT_WIDTH)
-    # input_image = input_image.cuda()
+    # toc = time.time()
+    # print('reshape time: {}s'.format(toc - tic))
+
     return input_image
 
 class MobileNetv2_Embedder(object):
@@ -50,8 +59,10 @@ class MobileNetv2_Embedder(object):
         self.model.cuda() #loads model to gpu
         self.model.eval() #inference mode, deactivates dropout layers 
         print('MobileNetV2 Embedder for Deep Sort initialised!')
+        # tic = time.time()
         self.model.forward(torch.zeros(8, 3, INPUT_WIDTH, INPUT_WIDTH).cuda()) #warmup
-
+        # toc = time.time()
+        # print('warm up time: {}s'.format(toc - tic))
 
     def predict(self, np_image_bgr_batch, batch_size = 16):
         '''
@@ -77,7 +88,6 @@ class MobileNetv2_Embedder(object):
             split_batches.append(np_image_bgr_batch[i:i+batch_size])
         all_feats = []
         remainder = total_size
-        print(len(split_batches))
         # For each batch
         for i in range(math.ceil(total_size / batch_size)):
             input_batch = torch.zeros((min(batch_size, remainder), 3, INPUT_WIDTH, INPUT_WIDTH))
@@ -86,7 +96,10 @@ class MobileNetv2_Embedder(object):
                 img = preprocess(img)
                 input_batch[k] = img
             # Batch inference
+            # tic = time.time()
             input_batch = input_batch.cuda()
+            # toc = time.time()
+            # print('input to cuda time:{}s'.format(toc - tic))
             # tic = time.time()
             output = self.model.forward(input_batch)
             # toc = time.time()
@@ -100,6 +113,7 @@ if __name__ == '__main__':
     import numpy as np
     import time
     impath = '/home/levan/Pictures/auba.jpg'
+    # impath = '/home/levan/Pictures/gudeicebear.png'
     auba = cv2.imread(impath)
     
     tic = time.time()
@@ -111,29 +125,26 @@ if __name__ == '__main__':
     tic = time.time()
     feats = emb.predict(aubas)
     toc = time.time()
-    print('inference 1 time: {}s'.format(toc - tic))
+    print('whole inference 1 time: {}s'.format(toc - tic))
     print(np.shape(feats))
 
-    aubas = [auba] * 8
-    tic = time.time()
-    feats = emb.predict(aubas)
-    toc = time.time()
-    print('inference 8 time: {}s'.format(toc - tic))
-    print(np.shape(feats))
+    # aubas = [auba] * 8
+    # tic = time.time()
+    # feats = emb.predict(aubas)
+    # toc = time.time()
+    # print('inference 8 time: {}s'.format(toc - tic))
+    # print(np.shape(feats))
     
-    aubas = [auba] * 16
-    tic = time.time()
-    feats = emb.predict(aubas)
-    toc = time.time()
-    print('inference 16 time: {}s'.format(toc - tic))
-    print(np.shape(feats))
+    # aubas = [auba] * 16
+    # tic = time.time()
+    # feats = emb.predict(aubas)
+    # toc = time.time()
+    # print('inference 16 time: {}s'.format(toc - tic))
+    # print(np.shape(feats))
 
-    aubas = [auba] * 32
-    tic = time.time()
-    feats = emb.predict(aubas)
-    toc = time.time()
-    print('inference 32 time: {}s'.format(toc - tic))
-    print(np.shape(feats))
-
-
-    # print(feats)
+    # aubas = [auba] * 32
+    # tic = time.time()
+    # feats = emb.predict(aubas)
+    # toc = time.time()
+    # print('inference 32 time: {}s'.format(toc - tic))
+    # print(np.shape(feats))
