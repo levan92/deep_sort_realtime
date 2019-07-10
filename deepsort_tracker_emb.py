@@ -7,14 +7,14 @@ if __name__ == '__main__':
     from deep_sort import nn_matching
     from deep_sort.detection import Detection
     from deep_sort.tracker import Tracker
-    from embedder import MobileNetv2_Embedder as Embedder
+    from embedder_pytorch import MobileNetv2_Embedder as Embedder
 else:
     from .application_util import preprocessing
     from .application_util import visualization
     from .deep_sort import nn_matching
     from .deep_sort.detection import Detection
     from .deep_sort.tracker import Tracker
-    from .embedder import MobileNetv2_Embedder as Embedder
+    from .embedder_pytorch import MobileNetv2_Embedder as Embedder
 
 class DeepSort(object):
 
@@ -43,7 +43,7 @@ class DeepSort(object):
         frame : ndarray
             Path to the MOTChallenge sequence directory.
         raw_detections : list
-            List of tuple ( [left,top,w,h] , confidence)
+            List of triples ( [left,top,w,h] , confidence, detection_class)
 
         Returns
         -------
@@ -52,7 +52,6 @@ class DeepSort(object):
         """
 
         results = []
-
 
         embeds = self.generate_embeds(frame, raw_detections)
         # Proper deep sort detection objects that consist of bbox, confidence and embedding.
@@ -74,13 +73,15 @@ class DeepSort(object):
     def generate_embeds(self, frame, raw_dets):
         crops = []
         for detection in raw_dets:
-            l,t,w,h = detection[0]
+            if detection is None:
+                continue
+            l,t,w,h = [int(x) for x in detection[0]]
             crops.append(frame[ t:t+h-1, l:l+w-1 ])
         return self.embedder.predict(crops)
 
     def create_detections(self, frame, raw_dets, embeds):
         detection_list = []
-        for i in range(len(raw_dets)):
+        for i in range(len(embeds)):
             detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i]))
         return detection_list
 
