@@ -84,6 +84,18 @@ class Track:
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
+        width, height)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
+
+        Returns
+        -------
+        ndarray
+            The bounding box.
+
+        """
+        return self.to_ltwh()
+
+    def to_ltwh(self):
+        """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
 
         Returns
@@ -98,6 +110,18 @@ class Track:
         return ret
 
     def to_tlbr(self):
+        """Get current position in bounding box format `(min x, miny, max x,
+        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
+        USE THIS AT YOUR OWN RISK. LIESSSSSSSSSS!
+        Returns LIES
+        -------
+        ndarray
+            The bounding box, in LTRB format
+
+        """
+        return self.to_ltrb()
+
+    def to_ltrb(self):
         """Get current position in bounding box format `(min x, miny, max x,
         max y)`.
 
