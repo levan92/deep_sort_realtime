@@ -126,7 +126,8 @@ class DeepSort(object):
         for i in range(len(detections)):
             # bbox, confidence, feature = row[2:6], row[6], row[10:]
             detection = detections[i]
-            bbox = [detection['tlwh'][x] for x in 'ltwh']
+            bbox = [detection[x] for x in 'ltwh']
+            # bbox = [detection['tlwh'][x] for x in 'ltwh']
             confidence = detection['confidence']
             # if bbox[3] < min_height:
                 # continue
