@@ -18,7 +18,7 @@ else:
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None):
         '''
         Input Params:
             - nms_max_overlap: Non-maxima suppression threshold: Maximum detection overlap
@@ -27,10 +27,11 @@ class DeepSort(object):
         '''
         print('Initialising DeepSort..')
         # self.video_info = video_info
+        assert clock is not None
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
-        self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class)
+        self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
         self.embedder = Embedder()
         print('DeepSort Tracker initialised!')
 
@@ -69,7 +70,7 @@ class DeepSort(object):
         self.tracker.update(detections)
 
         return self.tracker.tracks
-
+    
     def generate_embeds(self, frame, raw_dets):
         crops = []
         for detection in raw_dets:
@@ -84,6 +85,9 @@ class DeepSort(object):
         for i in range(len(embeds)):
             detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i]))
         return detection_list
+
+    def refresh_track_ids(self):
+        self.tracker._next_id
 
 if __name__ == '__main__':
     tracker = DeepSort(max_age = 30, nn_budget=100)
