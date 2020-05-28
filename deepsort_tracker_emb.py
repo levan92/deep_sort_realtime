@@ -27,7 +27,7 @@ class DeepSort(object):
         '''
         print('Initialising DeepSort..')
         # self.video_info = video_info
-        assert clock is not None
+        # assert clock is not None
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
