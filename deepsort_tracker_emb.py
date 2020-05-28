@@ -54,6 +54,8 @@ class DeepSort(object):
 
         results = []
 
+        raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
+
         embeds = self.generate_embeds(frame, raw_detections)
         # Proper deep sort detection objects that consist of bbox, confidence and embedding.
         detections = self.create_detections(frame, raw_detections, embeds)
@@ -73,11 +75,18 @@ class DeepSort(object):
     
     def generate_embeds(self, frame, raw_dets):
         crops = []
+        im_height, im_width = frame.shape[:2]
         for detection in raw_dets:
             if detection is None:
                 continue
             l,t,w,h = [int(x) for x in detection[0]]
-            crops.append(frame[ t:t+h-1, l:l+w-1 ])
+            r = l + w
+            b = t + h
+            crop_l = max(0, l)
+            crop_r = min(im_width, r)
+            crop_t = max(0, t)
+            crop_b = min(im_height, b)
+            crops.append(frame[ crop_t:crop_b, crop_l:crop_r ])
         return self.embedder.predict(crops)
 
     def create_detections(self, frame, raw_dets, embeds):
