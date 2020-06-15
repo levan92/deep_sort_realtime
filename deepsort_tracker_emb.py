@@ -18,7 +18,7 @@ else:
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True):
         '''
         Input Params:
             - nms_max_overlap: Non-maxima suppression threshold: Maximum detection overlap
@@ -32,7 +32,7 @@ class DeepSort(object):
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
-        self.embedder = Embedder()
+        self.embedder = Embedder(half=half)
         print('DeepSort Tracker initialised!')
 
     def update_tracks(self, frame, raw_detections):
