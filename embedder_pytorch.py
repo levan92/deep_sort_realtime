@@ -3,6 +3,7 @@ from torchvision.transforms import transforms
 import cv2
 import math
 # import time
+import numpy as np
 import os 
 if __name__ == '__main__':
     from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
@@ -56,17 +57,21 @@ class MobileNetv2_Embedder(object):
     '''
     MobileNetv2_Embedder loads a Mobilenetv2 pretrained on Imagenet1000, with classification layer removed, exposing the bottleneck layer, outputing a feature of size 1280. 
     '''
-    def __init__(self, model_wts_path = None):
+    def __init__(self, model_wts_path = None, half=True):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         assert os.path.exists(model_wts_path),'Mobilenetv2 model path does not exists!'
         self.model = MobileNetV2_bottle(input_size=INPUT_WIDTH, width_mult=1.)
         self.model.load_state_dict(torch.load(model_wts_path))
         self.model.cuda() #loads model to gpu
-        self.model.eval() #inference mode, deactivates dropout layers 
+        self.model.eval() #inference mode, deactivates dropout layers
+        self.half = half
+        if self.half:
+            self.model.half()
         print('MobileNetV2 Embedder for Deep Sort initialised!')
         # tic = time.time()
-        self.model.forward(torch.zeros(8, 3, INPUT_WIDTH, INPUT_WIDTH).cuda()) #warmup
+        zeros = np.zeros((100, 100, 3))
+        self.predict([zeros]) #warmup
         # toc = time.time()
         # print('warm up time: {}s'.format(toc - tic))
 
@@ -107,6 +112,8 @@ class MobileNetv2_Embedder(object):
             # toc = time.time()
             # print('input to cuda time:{}s'.format(toc - tic))
             # tic = time.time()
+            if self.half:
+                input_batch = input_batch.half()
             output = self.model.forward(input_batch)
             # toc = time.time()
             # print('real inference time: {}s'.format(toc - tic))

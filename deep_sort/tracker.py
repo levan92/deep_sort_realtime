@@ -38,9 +38,10 @@ class Tracker:
     """
 
     def __init__(self, metric, max_iou_distance=0.7, max_age=30, n_init=3, override_track_class=None, clock=None):
-        assert clock is not None
+        # assert clock is not None
         self.clock = clock
-        self.today = self.clock.get_now_SGT().date()
+        if self.clock:
+            self.today = self.clock.get_now_SGT().date()
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
@@ -72,10 +73,11 @@ class Tracker:
             A list of detections at the current time step.
 
         """
-        # Check if its a new day, then refresh idx
-        if self.clock.get_now_SGT().date() != self.today:
-            self.today = self.clock.get_now_SGT().date()
-            self._next_id = 1
+        if self.clock:
+            # Check if its a new day, then refresh idx
+            if self.clock.get_now_SGT().date() != self.today:
+                self.today = self.clock.get_now_SGT().date()
+                self._next_id = 1
 
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
@@ -154,7 +156,12 @@ class Tracker:
 
     def _initiate_track(self, detection):
         mean, covariance = self.kf.initiate(detection.to_xyah())
-        track_id = '{}_{}'.format(self.clock.get_now_SGT_date_str(), self._next_id)
+        
+        if self.clock:
+            track_id = '{}_{}'.format(self.clock.get_now_SGT_date_str(), self._next_id)
+        else:
+            track_id = '{}'.format(self._next_id)    
+        
         self.tracks.append(self.track_class(
             mean, covariance, track_id, self.n_init, self.max_age,
             # mean, covariance, self._next_id, self.n_init, self.max_age,

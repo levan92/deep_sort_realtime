@@ -18,7 +18,7 @@ else:
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True):
         '''
         Input Params:
             - nms_max_overlap: Non-maxima suppression threshold: Maximum detection overlap
@@ -27,12 +27,12 @@ class DeepSort(object):
         '''
         print('Initialising DeepSort..')
         # self.video_info = video_info
-        assert clock is not None
+        # assert clock is not None
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
-        self.embedder = Embedder()
+        self.embedder = Embedder(half=half)
         print('DeepSort Tracker initialised!')
 
     def update_tracks(self, frame, raw_detections):
@@ -54,6 +54,8 @@ class DeepSort(object):
 
         results = []
 
+        raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
+
         embeds = self.generate_embeds(frame, raw_detections)
         # Proper deep sort detection objects that consist of bbox, confidence and embedding.
         detections = self.create_detections(frame, raw_detections, embeds)
@@ -73,11 +75,18 @@ class DeepSort(object):
     
     def generate_embeds(self, frame, raw_dets):
         crops = []
+        im_height, im_width = frame.shape[:2]
         for detection in raw_dets:
             if detection is None:
                 continue
             l,t,w,h = [int(x) for x in detection[0]]
-            crops.append(frame[ t:t+h-1, l:l+w-1 ])
+            r = l + w
+            b = t + h
+            crop_l = max(0, l)
+            crop_r = min(im_width, r)
+            crop_t = max(0, t)
+            crop_b = min(im_height, b)
+            crops.append(frame[ crop_t:crop_b, crop_l:crop_r ])
         return self.embedder.predict(crops)
 
     def create_detections(self, frame, raw_dets, embeds):
