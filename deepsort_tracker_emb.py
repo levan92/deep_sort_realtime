@@ -92,7 +92,7 @@ class DeepSort(object):
     def create_detections(self, frame, raw_dets, embeds):
         detection_list = []
         for i in range(len(embeds)):
-            detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i]))
+            detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i], class_name=raw_dets[i][2])) #raw_det = [bbox, conf_score, class]
         return detection_list
 
     def refresh_track_ids(self):
