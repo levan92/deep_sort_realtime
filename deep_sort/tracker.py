@@ -161,9 +161,8 @@ class Tracker:
             track_id = '{}_{}'.format(self.clock.get_now_SGT_date_str(), self._next_id)
         else:
             track_id = '{}'.format(self._next_id)    
-        
         self.tracks.append(self.track_class(
             mean, covariance, track_id, self.n_init, self.max_age,
             # mean, covariance, self._next_id, self.n_init, self.max_age,
-            detection.feature))
+            detection.feature, class_name=detection.class_name))
         self._next_id += 1
