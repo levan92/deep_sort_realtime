@@ -5,10 +5,10 @@ import math
 # import time
 import numpy as np
 import os 
-if __name__ == '__main__':
-    from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
-else:
-    from .mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
+# if __name__ == '__main__':
+from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
+# else:
+    # from .mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
 DIR = os.path.dirname(os.path.realpath(__file__))
 
 # MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")

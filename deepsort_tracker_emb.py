@@ -92,7 +92,7 @@ class DeepSort(object):
     def create_detections(self, frame, raw_dets, embeds):
         detection_list = []
         for i in range(len(embeds)):
-            detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i], class_name=raw_dets[i][2])) #raw_det = [bbox, conf_score, class]
+            detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i], raw_dets[i][2])) #raw_det = [bbox, conf_score, class]
         return detection_list
 
     def refresh_track_ids(self):
@@ -101,12 +101,13 @@ class DeepSort(object):
 if __name__ == '__main__':
     tracker = DeepSort(max_age = 30, nn_budget=100)
 
-    impath = '/home/levan/Pictures/auba.jpg'
+    # impath = '/home/levan/Pictures/auba.jpg'
+    impath = '/home/dh/Pictures/pp.jpeg'
     
     print()
     print('FRAME1')
     frame1 = cv2.imread(impath)
-    detections1 = [ ( [0,0,50,50], 0.5 ), ([50,50, 50, 50], 0.5) ] 
+    detections1 = [ ( [0,0,50,50], 0.5, 'person' ), ([50,50, 50, 50], 0.5, 'person') ] 
     tracks = tracker.update_tracks(frame1, detections1)
     for track in tracks:
         print(track.track_id)
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     print('FRAME2')
     # assume new frame
     frame2 = frame1
-    detections2 = [ ( [10,10,60,60], 0.8 ), ([60,50, 50, 50], 0.7) ] 
+    detections2 = [ ( [10,10,60,60], 0.8, 'person' ), ([60,50, 50, 50], 0.7, 'person') ] 
     tracks = tracker.update_tracks(frame2, detections2)
     for track in tracks:
         print(track.track_id)

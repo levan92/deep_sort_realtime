@@ -40,6 +40,10 @@ class Track:
     feature : Optional[ndarray]
         Feature vector of the detection this track originates from. If not None,
         this feature is added to the `features` cache.
+    det_class : Optional str
+        Classname of detection prediction
+    det_conf : Optional float
+        Confidence associated with detection prediction
 
     Attributes
     ----------
@@ -64,7 +68,7 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, class_name=None):
+                 feature=None, det_class=None, det_conf=None):
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id
@@ -80,8 +84,8 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
 
-        self.det_conf = None
-        self.class_name = class_name
+        self.det_class = det_class
+        self.det_conf = det_conf
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
@@ -172,6 +176,8 @@ class Track:
         # print("CONFIDENCE:",detection.confidence)
         self.det_conf = detection.confidence
         # print('appending feature', len(detection.feature))
+        self.det_class = detection.class_name
+
         self.hits += 1
         # print('track hits += 1')
 

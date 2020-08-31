@@ -14,6 +14,8 @@ class Detection(object):
         Detector confidence score.
     feature : array_like
         A feature vector that describes the object contained in this image.
+    class_name : Optional str
+        Detector predicted class name
 
     Attributes
     ----------
