@@ -218,15 +218,3 @@ class DeepSort(object):
     #     }
     #     return frame_info
 
-
- 
-
- 
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    run(
-        args.sequence_dir, args.detection_file, args.output_file,
-        args.min_confidence, args.nms_max_overlap, args.min_detection_height,
-        args.max_cosine_distance, args.nn_budget, args.display)
