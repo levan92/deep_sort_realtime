@@ -77,8 +77,8 @@ class DeepSort(object):
         crops = []
         im_height, im_width = frame.shape[:2]
         for detection in raw_dets:
-            if detection is None:
-                continue
+            # if detection is None:
+            #     continue
             l,t,w,h = [int(x) for x in detection[0]]
             r = l + w
             b = t + h
@@ -91,7 +91,8 @@ class DeepSort(object):
 
     def create_detections(self, frame, raw_dets, embeds):
         detection_list = []
-        for i in range(len(embeds)):
+        #TODO FIX GENERATE EMBEDS BATCHING IMPLEMENTATION, now it pads remainder of batch with zeros
+        for i in range(len(raw_dets)):
             detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i], raw_dets[i][2])) #raw_det = [bbox, conf_score, class]
         return detection_list
 
