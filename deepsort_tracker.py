@@ -4,20 +4,18 @@ import logging
 import cv2
 import numpy as np
 
-if __name__ == '__main__':
-    from application_util import preprocessing
-    from application_util import visualization
+try:
     from deep_sort import nn_matching
     from deep_sort.detection import Detection
     from deep_sort.tracker import Tracker
     from embedder_pytorch import MobileNetv2_Embedder as Embedder
-else:
-    from .application_util import preprocessing
-    from .application_util import visualization
+    from utils.nms import non_max_suppression
+except:
     from .deep_sort import nn_matching
     from .deep_sort.detection import Detection
     from .deep_sort.tracker import Tracker
     from .embedder_pytorch import MobileNetv2_Embedder as Embedder
+    from .utils.nms import non_max_suppression
 
 log_level = logging.DEBUG
 logger = logging.getLogger('DeepSORT')
@@ -30,7 +28,7 @@ logger.addHandler(handler)
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True, bgr=True):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True):
         '''
         
         Parameters
@@ -47,6 +45,8 @@ class DeepSort(object):
             Giving this will override default Track class, this must inherit Track
         clock : Optional[object] = None 
             Clock custom object provides date for track naming and facilitates track id reset every day, preventing overflow and overly large track ids. For example clock class, please see `utils/clock.py`
+        embedder : Optional[bool] = True
+            Whether to use in-built embedder or not. If False, then embeddings must be given during update
         half : Optional[bool] = True
             Whether to use half precision for deep embedder
         bgr : Optional[bool] = True
@@ -58,25 +58,31 @@ class DeepSort(object):
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
-        self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
-        logger.info('DeepSort Tracker (with in-built embedder) initialised')
+        if embedder:
+            self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
+        else:
+            self.embedder = None
+        logger.info('DeepSort Tracker initialised')
         logger.info(f'- max age: {max_age}')
         logger.info(f'- appearance threshold: {max_cosine_distance}')
         logger.info(f'- nms threshold: {"OFF" if self.nms_max_overlap==1.0 else self.nms_max_overlap }')
         logger.info(f'- max num of appearance features: {nn_budget}')
         logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
         logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
+        logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}' )
 
-    def update_tracks(self, frame, raw_detections):
+    def update_tracks(self, raw_detections, embeds=None, frame=None):
 
         """Run multi-target tracker on a particular sequence.
 
         Parameters
         ----------
-        frame : ndarray
-            Path to the MOTChallenge sequence directory.
-        raw_detections : list
-            List of triples ( [left,top,w,h] , confidence, detection_class)
+        raw_detections : List[ Tuple[ List[float or int], float, str ] ]
+            List of detections, each in tuples of ( [left,top,w,h] , confidence, detection_class)
+        embeds : Optional[ List[] ] = None
+            List of appearance features corresponding to detections
+        frame : Optional [ np.ndarray ] = None
+            if embeds not given, Image frame must be given here, in [H,W,C].
 
         Returns
         -------
@@ -84,20 +90,26 @@ class DeepSort(object):
 
         """
 
-        # results = []
+        if embeds is None:
+            if self.embedder is None:
+                raise Exception('Embedder not created during init so embeddings must be given now!')
+            if frame is None:
+                raise Exception('either embeddings or frame must be given!')
 
         raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
-        embeds = self.generate_embeds(frame, raw_detections)
+        if embeds is None:
+            embeds = self.generate_embeds(frame, raw_detections)
+    
         # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-        detections = self.create_detections(frame, raw_detections, embeds)
+        detections = self.create_detections(raw_detections, embeds)
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.confidence for d in detections])
         if self.nms_max_overlap < 1.0:
             # nms_tic = time.perf_counter()
-            indices = preprocessing.non_max_suppression(
+            indices = non_max_suppression(
             boxes, self.nms_max_overlap, scores)
             # nms_toc = time.perf_counter()
             # logger.debug(f'nms time: {nms_toc-nms_tic}s')
@@ -125,7 +137,7 @@ class DeepSort(object):
             crops.append(frame[ crop_t:crop_b, crop_l:crop_r ])
         return self.embedder.predict(crops)
 
-    def create_detections(self, frame, raw_dets, embeds):
+    def create_detections(self, raw_dets, embeds):
         detection_list = []
         for raw_det, embed in zip(raw_dets,embeds):
         # for i in range(len(raw_dets)):
@@ -139,7 +151,8 @@ if __name__ == '__main__':
     from utils.clock import Clock
     
     clock = Clock()
-    tracker = DeepSort(max_age = 30, nn_budget=100, nms_max_overlap=1.0, clock=clock)
+    # tracker = DeepSort(max_age = 30, nn_budget=100, nms_max_overlap=1.0, clock=clock)
+    tracker = DeepSort(max_age = 30, nn_budget=100, nms_max_overlap=1.0, clock=clock, embedder=False)
 
     impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
 
@@ -147,7 +160,9 @@ if __name__ == '__main__':
     print('FRAME1')
     frame1 = cv2.imread(impath)
     detections1 = [ ( [0,0,50,50], 0.5, 'person' ), ([50,50, 50, 50], 0.5, 'person') ] 
-    tracks = tracker.update_tracks(frame1, detections1)
+    embeds1 = [ np.array([0.1,0.1,0.1,0.1]), np.array([-1.0,1.0,0.5,-0.5])  ]
+    # tracks = tracker.update_tracks(detections1, frame=frame1)
+    tracks = tracker.update_tracks(detections1, embeds=embeds1)
     for track in tracks:
         print(track.track_id)
         print(track.to_tlwh())
@@ -157,7 +172,9 @@ if __name__ == '__main__':
     # assume new frame
     frame2 = frame1
     detections2 = [ ( [10,10,60,60], 0.8, 'person' ), ([60,50, 50, 50], 0.7, 'person') ] 
-    tracks = tracker.update_tracks(frame2, detections2)
+    embeds2 = [ np.array([0.1,0.1,0.1,0.1]), np.array([-1.1,1.0,0.5,-0.5])  ]
+    # tracks = tracker.update_tracks(detections2, frame=frame2)
+    tracks = tracker.update_tracks(detections2, embeds=embeds2)
     for track in tracks:
         print(track.track_id)
         print(track.to_tlwh())
@@ -167,20 +184,22 @@ if __name__ == '__main__':
     print('FRAME3')
     # assume new frame
     frame3 = frame1
-    detections2 = [ ( [20,20,70,70], 0.8, 'person' ), ([70,50, 50, 50], 0.7, 'person') ] 
-    tracks = tracker.update_tracks(frame3, detections2)
+    detections3 = [ ( [20,20,70,70], 0.8, 'person' ), ([70,50, 50, 50], 0.7, 'person') ] 
+    embeds3 = [ np.array([0.1,0.1,0.1,0.1]), np.array([-1.1,1.0,0.5,-0.5])  ]
+    # tracks = tracker.update_tracks(detections3, frame=frame3)
+    tracks = tracker.update_tracks(detections3, embeds=embeds3)
     for track in tracks:
         print(track.track_id)
         print(track.to_tlwh())
 
-
-    
     print()
     print('FRAME4')
     # assume new frame
     frame4 = frame1
-    detections2 = [ ( [10,10,60,60], 0.8, 'person' )] 
-    tracks = tracker.update_tracks(frame4, detections2)
+    detections4 = [ ( [10,10,60,60], 0.8, 'person' )] 
+    embeds4 = [ np.array([0.1,0.1,0.1,0.1]) ]
+    # tracks = tracker.update_tracks(detections4, frame=frame4)
+    tracks = tracker.update_tracks(detections4, embeds=embeds4)
     for track in tracks:
         print(track.track_id)
         print(track.to_tlwh())
