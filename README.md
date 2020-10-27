@@ -20,7 +20,7 @@ Example usage:
 - Include this as submodule
 
 ```python
-from deep_sort.deepsort_tracker_emb import DeepSort
+from deep_sort.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70)
 bbs = object_detector.detect(frame)
 tracks = trackers.update_tracks(frame, bbs)
