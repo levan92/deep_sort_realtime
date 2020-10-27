@@ -24,7 +24,7 @@ Example usage:
 from deep_sort.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70)
 bbs = object_detector.detect(frame)
-tracks = trackers.update_tracks(frame, bbs)
+tracks = trackers.update_tracks(bbs, frame=frame)
 for track in tracks:
    track_id = track.track_id
    ltrb = track.to_ltrb()
