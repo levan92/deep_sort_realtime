@@ -19,7 +19,7 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 Example usage:
 - Include this as submodule
 
-```
+```python
 from deep_sort.deepsort_tracker_emb import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70)
 bbs = object_detector.detect(frame)
@@ -51,8 +51,6 @@ half : Optional[bool] = True
 bgr : Optional[bool] = True
    Whether frame given to embedder is expected to be BGR or not (RGB)
 ```
-
-
 
 ## [From original repo] Highlevel overview of source files in `deep_sort`
 
