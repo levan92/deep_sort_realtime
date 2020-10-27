@@ -54,3 +54,6 @@ In package `deep_sort` is the main tracking code:
 * `track.py`: The track class contains single-target track data such as Kalman
   state, number of hits, misses, hit streak, associated feature vectors, etc.
 * `tracker.py`: This is the multi-target tracker class.
+
+## Misc
+Ignore `deepsort_tracker_emb_dict.py` please, that is WIP. 
