@@ -17,7 +17,8 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 ## Run
 
 Example usage:
-- Include this as submodule
+- Include this repo as submodule
+- `deepsort_tracker.py` is your main point of entry
 
 ```python
 from deep_sort.deepsort_tracker import DeepSort
