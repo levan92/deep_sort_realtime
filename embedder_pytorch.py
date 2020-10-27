@@ -1,22 +1,34 @@
+import os 
+import logging
+
+import cv2
+import numpy as np
 import torch
 from torchvision.transforms import transforms
-import cv2
-import math
-# import time
-import numpy as np
-import os 
-# if __name__ == '__main__':
+
 try:
     from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
-# else:
 except:
     from .mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
-    
-DIR = os.path.dirname(os.path.realpath(__file__))
 
+log_level = logging.DEBUG
+logger = logging.getLogger('Embedder for Deepsort')
+logger.setLevel(log_level)
+handler = logging.StreamHandler()
+handler.setLevel(log_level)
+formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+DIR = os.path.dirname(os.path.realpath(__file__))
 # MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")
 MOBILENETV2_BOTTLENECK_WTS =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottleneck_wts.pt")
 INPUT_WIDTH = 224
+
+def batch(iterable, bs=1):
+    l = len(iterable)
+    for ndx in range(0, l, bs):
+        yield iterable[ndx:min(ndx + bs, l)]
 
 def preprocess(np_image_bgr):
     '''
@@ -60,7 +72,7 @@ class MobileNetv2_Embedder(object):
     '''
     MobileNetv2_Embedder loads a Mobilenetv2 pretrained on Imagenet1000, with classification layer removed, exposing the bottleneck layer, outputing a feature of size 1280. 
     '''
-    def __init__(self, model_wts_path = None, half=True):
+    def __init__(self, model_wts_path = None, half=True, max_batch_size = 16):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         assert os.path.exists(model_wts_path),'Mobilenetv2 model path does not exists!'
@@ -68,17 +80,22 @@ class MobileNetv2_Embedder(object):
         self.model.load_state_dict(torch.load(model_wts_path))
         self.model.cuda() #loads model to gpu
         self.model.eval() #inference mode, deactivates dropout layers
+
+        self.max_batch_size = max_batch_size
         self.half = half
         if self.half:
             self.model.half()
-        print('MobileNetV2 Embedder for Deep Sort initialised!')
+        logger.info('MobileNetV2 Embedder for Deep Sort initialised')
+        logger.info(f'- half precision: {self.half}')
+        logger.info(f'- max batch size: {self.max_batch_size}')
         # tic = time.time()
-        zeros = np.zeros((100, 100, 3))
+        zeros = np.zeros((100, 100, 3), dtype=np.uint8)
         self.predict([zeros]) #warmup
         # toc = time.time()
         # print('warm up time: {}s'.format(toc - tic))
 
-    def predict(self, np_image_bgr_batch, batch_size = 16):
+
+    def predict(self, np_image_bgr_batch):
         '''
         batch inference
 
@@ -87,81 +104,48 @@ class MobileNetv2_Embedder(object):
         np_image_bgr_batch : list of ndarray
             list of (H x W x C) in BGR
         
-        (optional) batch_size : int
-
         Returns
         ------
         list of features (np.array with dim = 1280)
 
         '''
-        total_size = len(np_image_bgr_batch)
-        batch_size = 16
-
-        split_batches = []
-        for i in range(0, total_size, batch_size):
-            split_batches.append(np_image_bgr_batch[i:i+batch_size])
         all_feats = []
-        remainder = total_size
-        # For each batch
-        for i in range(math.ceil(total_size / batch_size)):
-            input_batch = torch.zeros((min(batch_size, remainder), 3, INPUT_WIDTH, INPUT_WIDTH))
-            # For each img in batch
-            for k, img in enumerate(split_batches[i]):
-                img = preprocess(img)
-                input_batch[k] = img
-            # Batch inference
-            # tic = time.time()
-            input_batch = input_batch.cuda()
-            # toc = time.time()
-            # print('input to cuda time:{}s'.format(toc - tic))
-            # tic = time.time()
+
+        preproc_imgs = [ preprocess(img) for img in np_image_bgr_batch ]
+
+        for this_batch in batch(preproc_imgs, bs=self.max_batch_size):
+            this_batch = torch.cat(this_batch, dim=0)
+            this_batch = this_batch.cuda()
             if self.half:
-                input_batch = input_batch.half()
-            output = self.model.forward(input_batch)
-            # toc = time.time()
-            # print('real inference time: {}s'.format(toc - tic))
+                this_batch = this_batch.half()
+            output = self.model.forward(this_batch)
+            
             all_feats.extend(output.cpu().data.numpy())
-            remainder = total_size - batch_size
+
         return all_feats
 
 if __name__ == '__main__':
     import cv2
     import numpy as np
     import time
-    # impath = '/home/levan/Pictures/auba.jpg'
-    impath = '/home/dh/Pictures/dog_two.jpg'
-    # impath = '/home/levan/Pictures/gudeicebear.png'
+    impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
     auba = cv2.imread(impath)
     
     tic = time.time()
-    emb = MobileNetv2_Embedder()
+    emb = MobileNetv2_Embedder(half=False, max_batch_size=32)
+    # emb = MobileNetv2_Embedder(half=True, max_batch_size=32)
     toc = time.time()
-    print('loading time: {}s'.format(toc - tic))
+    print(f'loading time: {toc - tic:0.4f}s')
 
-    aubas = [auba] * 1
-    tic = time.time()
-    feats = emb.predict(aubas)
-    toc = time.time()
-    print('whole inference 1 time: {}s'.format(toc - tic))
-    print(np.shape(feats))
-
-    # aubas = [auba] * 8
-    # tic = time.time()
-    # feats = emb.predict(aubas)
-    # toc = time.time()
-    # print('inference 8 time: {}s'.format(toc - tic))
-    # print(np.shape(feats))
-    
-    # aubas = [auba] * 16
-    # tic = time.time()
-    # feats = emb.predict(aubas)
-    # toc = time.time()
-    # print('inference 16 time: {}s'.format(toc - tic))
-    # print(np.shape(feats))
-
-    # aubas = [auba] * 32
-    # tic = time.time()
-    # feats = emb.predict(aubas)
-    # toc = time.time()
-    # print('inference 32 time: {}s'.format(toc - tic))
-    # print(np.shape(feats))
+    bses = [1,16,32,100]
+    reps = 100
+    for bs in bses:
+        aubas = [auba] * bs
+        dur = 0
+        for _ in range(reps):
+            tic = time.time()
+            feats = emb.predict(aubas)
+            toc = time.time()
+            dur += toc - tic
+        print(np.shape(feats))
+        print(f'avrg inference {bs} time: {dur/reps:0.4f}s')
