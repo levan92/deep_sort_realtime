@@ -1,3 +1,5 @@
+import logging
+
 import cv2
 import numpy as np
 
@@ -16,6 +18,14 @@ else:
     from .deep_sort.tracker import Tracker
     from .embedder_pytorch import MobileNetv2_Embedder as Embedder
 
+log_level = logging.DEBUG
+logger = logging.getLogger('DeepSORT')
+logger.setLevel(log_level)
+handler = logging.StreamHandler()
+handler.setLevel(log_level)
+formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class DeepSort(object):
 
@@ -26,7 +36,6 @@ class DeepSort(object):
             - max_cosine_distance: Gating threshold for cosine distance
             - nn_budget: Maximum size of the appearance descriptors, if None, no budget is enforced
         '''
-        print('Initialising DeepSort..')
         # self.video_info = video_info
         # assert clock is not None
         self.nms_max_overlap = nms_max_overlap
@@ -34,7 +43,7 @@ class DeepSort(object):
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
         self.embedder = Embedder(half=half, max_batch_size=16)
-        print('DeepSort Tracker initialised!')
+        logger.info('DeepSort Tracker (with in-built embedder) initialised')
 
     def update_tracks(self, frame, raw_detections):
 
@@ -92,9 +101,9 @@ class DeepSort(object):
 
     def create_detections(self, frame, raw_dets, embeds):
         detection_list = []
-        #TODO FIX GENERATE EMBEDS BATCHING IMPLEMENTATION, now it pads remainder of batch with zeros
-        for i in range(len(raw_dets)):
-            detection_list.append(Detection(raw_dets[i][0], raw_dets[i][1], embeds[i], raw_dets[i][2])) #raw_det = [bbox, conf_score, class]
+        for raw_det, embed in zip(raw_dets,embeds):
+        # for i in range(len(raw_dets)):
+            detection_list.append(Detection(raw_det[0], raw_det[1], embed, raw_det[2])) #raw_det = [bbox, conf_score, class]
         return detection_list
 
     def refresh_track_ids(self):
@@ -120,6 +129,29 @@ if __name__ == '__main__':
     frame2 = frame1
     detections2 = [ ( [10,10,60,60], 0.8, 'person' ), ([60,50, 50, 50], 0.7, 'person') ] 
     tracks = tracker.update_tracks(frame2, detections2)
+    for track in tracks:
+        print(track.track_id)
+        print(track.to_tlwh())
+
+
+    print()
+    print('FRAME3')
+    # assume new frame
+    frame3 = frame1
+    detections2 = [ ( [20,20,70,70], 0.8, 'person' ), ([70,50, 50, 50], 0.7, 'person') ] 
+    tracks = tracker.update_tracks(frame3, detections2)
+    for track in tracks:
+        print(track.track_id)
+        print(track.to_tlwh())
+
+
+    
+    print()
+    print('FRAME4')
+    # assume new frame
+    frame4 = frame1
+    detections2 = [ ( [10,10,60,60], 0.8, 'person' )] 
+    tracks = tracker.update_tracks(frame4, detections2)
     for track in tracks:
         print(track.track_id)
         print(track.to_tlwh())
