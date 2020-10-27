@@ -29,12 +29,27 @@ logger.addHandler(handler)
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True, bgr=True):
         '''
-        Input Params:
-            - nms_max_overlap: Non-maxima suppression threshold: Maximum detection overlap
-            - max_cosine_distance: Gating threshold for cosine distance
-            - nn_budget: Maximum size of the appearance descriptors, if None, no budget is enforced
+        
+        Parameters
+        ----------
+        max_age : Optional[int] = 30
+            Maximum number of missed misses before a track is deleted.
+        nms_max_overlap : Optional[float] = 1.0
+            Non-maxima suppression threshold: Maximum detection overlap
+        max_cosine_distance : Optional[float] = 0.2
+            Gating threshold for cosine distance
+        nn_budget :  Optional[int] = None
+            Maximum size of the appearance descriptors, if None, no budget is enforced
+        override_track_class : Optional[object] = None
+            Giving this will override default Track class, this must inherit Track
+        clock : Optional[object] = None 
+            Clock custom object provides date for track naming and facilitates track id reset every day, preventing overflow and overly large track ids
+        half : Optional[bool] = True
+            Whether to use half precision for deep embedder
+        bgr : Optional[bool] = True
+            Whether frame given to embedder is expected to be BGR or not (RGB)
         '''
         # self.video_info = video_info
         # assert clock is not None
@@ -42,7 +57,7 @@ class DeepSort(object):
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
-        self.embedder = Embedder(half=half, max_batch_size=16)
+        self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         logger.info('DeepSort Tracker (with in-built embedder) initialised')
 
     def update_tracks(self, frame, raw_detections):
