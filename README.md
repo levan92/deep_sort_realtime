@@ -31,7 +31,7 @@ for track in tracks:
 ## Differences from original repo
 
 - remove "academic style" offline processing style and implemented it to take in real-time detections and output accordingly.
-- use mobilenetv2 as embedder instead (torch ftw).
+- added (pytorch) mobilenetv2 as embedder (torch ftw).
 - skip nms completely in preprocessing detections if nms_max_overlap == 1.0 (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - deepsort takes in a "clock" object (see `utils/clock.py` for example), which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
 - other minor adjustments.
