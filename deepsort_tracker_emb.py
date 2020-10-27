@@ -16,6 +16,7 @@ else:
     from .deep_sort.tracker import Tracker
     from .embedder_pytorch import MobileNetv2_Embedder as Embedder
 
+
 class DeepSort(object):
 
     def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, half=True):
@@ -32,7 +33,7 @@ class DeepSort(object):
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
-        self.embedder = Embedder(half=half)
+        self.embedder = Embedder(half=half, max_batch_size=16)
         print('DeepSort Tracker initialised!')
 
     def update_tracks(self, frame, raw_detections):
@@ -52,7 +53,7 @@ class DeepSort(object):
 
         """
 
-        results = []
+        # results = []
 
         raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
@@ -102,9 +103,8 @@ class DeepSort(object):
 if __name__ == '__main__':
     tracker = DeepSort(max_age = 30, nn_budget=100)
 
-    # impath = '/home/levan/Pictures/auba.jpg'
-    impath = '/home/dh/Pictures/pp.jpeg'
-    
+    impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
+
     print()
     print('FRAME1')
     frame1 = cv2.imread(impath)
