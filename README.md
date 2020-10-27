@@ -26,6 +26,7 @@ tracker = DeepSort(max_age=30, nn_budget=70)
 bbs = object_detector.detect(frame)
 tracks = trackers.update_tracks(frame, bbs)
 for track in tracks:
+   track_id = track.track_id
    ltrb = track.to_ltrb()
 ```
 
