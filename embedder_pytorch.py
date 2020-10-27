@@ -30,49 +30,19 @@ def batch(iterable, bs=1):
     for ndx in range(0, l, bs):
         yield iterable[ndx:min(ndx + bs, l)]
 
-def preprocess(np_image_bgr):
-    '''
-    Preprocessing for embedder network: Flips BGR to RGB, resize, convert to torch tensor, normalise with imagenet mean and variance, reshape. Note: input image yet to be loaded to GPU through tensor.cuda()
-
-    Parameters
-    ----------
-    np_image_bgr : ndarray
-        (H x W x C) in BGR
-
-    Returns
-    -------
-    Torch Tensor
-
-    '''
-    # tic = time.time()
-    np_image_rgb = np_image_bgr[...,::-1]
-    # toc = time.time()
-    # print('flip channel time: {}s'.format(toc - tic))
-    # tic = time.time()
-    np_image_rgb = cv2.resize(np_image_rgb, (INPUT_WIDTH, INPUT_WIDTH))
-    # toc = time.time()
-    # print('resize time: {}s'.format(toc - tic))
-    # preproc = transforms.Compose([
-    #     transforms.ToTensor(),
-    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-    # ])
-    # tic = time.time()
-    input_image = transforms.ToTensor()(np_image_rgb)
-    # input_image = preproc(np_image_rgb)
-    # toc = time.time()
-    # print('toTorchTensor & Norm time: {}s'.format(toc - tic))
-    # tic = time.time()
-    input_image = input_image.view(1,3,INPUT_WIDTH,INPUT_WIDTH)
-    # toc = time.time()
-    # print('reshape time: {}s'.format(toc - tic))
-
-    return input_image
-
 class MobileNetv2_Embedder(object):
     '''
     MobileNetv2_Embedder loads a Mobilenetv2 pretrained on Imagenet1000, with classification layer removed, exposing the bottleneck layer, outputing a feature of size 1280. 
+
+    Params
+    ------
+    - model_wts_path (optional, str) : path to mobilenetv2 model weights, defaults to the model file in ./mobilenetv2
+    - half (optional, Bool) : boolean flag to use half precision or not, defaults to True
+    - max_batch_size (optional, int) : max batch size for embedder, defaults to 16
+    - bgr (optional, Bool) : boolean flag indicating if input frames are bgr or not, defaults to True
+
     '''
-    def __init__(self, model_wts_path = None, half=True, max_batch_size = 16):
+    def __init__(self, model_wts_path = None, half=True, max_batch_size = 16, bgr=True):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         assert os.path.exists(model_wts_path),'Mobilenetv2 model path does not exists!'
@@ -82,27 +52,94 @@ class MobileNetv2_Embedder(object):
         self.model.eval() #inference mode, deactivates dropout layers
 
         self.max_batch_size = max_batch_size
+        self.bgr = bgr
+
         self.half = half
         if self.half:
             self.model.half()
         logger.info('MobileNetV2 Embedder for Deep Sort initialised')
         logger.info(f'- half precision: {self.half}')
         logger.info(f'- max batch size: {self.max_batch_size}')
+        logger.info(f'- expects BGR: {self.bgr}')
+
         # tic = time.time()
         zeros = np.zeros((100, 100, 3), dtype=np.uint8)
         self.predict([zeros]) #warmup
         # toc = time.time()
         # print('warm up time: {}s'.format(toc - tic))
 
+    # preproc_transforms = transforms.Compose([
+    #         transforms.ToPILImage(),
+    #         transforms.Resize(INPUT_WIDTH),
+    #         # transforms.CenterCrop(224),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    #     ])
+    def preprocess(self, np_image):
+        '''
+        Preprocessing for embedder network: Flips BGR to RGB, resize, convert to torch tensor, normalise with imagenet mean and variance, reshape. Note: input image yet to be loaded to GPU through tensor.cuda()
 
-    def predict(self, np_image_bgr_batch):
+        Parameters
+        ----------
+        np_image : ndarray
+            (H x W x C)
+
+        Returns
+        -------
+        Torch Tensor
+
+        '''
+        if self.bgr:
+            np_image_rgb = np_image[...,::-1]
+        else:
+            np_image_rgb = np_image
+
+        # tic = time.perf_counter()
+        input_image = cv2.resize(np_image_rgb, (INPUT_WIDTH, INPUT_WIDTH))
+        trans = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+        input_image = trans(input_image)
+        input_image = input_image.view(1,3,INPUT_WIDTH,INPUT_WIDTH)
+        
+        # tic2 = time.perf_counter()
+        # input_tensor = self.preproc_transforms(np_image_rgb)
+        # input_tensor = input_tensor.unsqueeze(0)
+        # toc = time.perf_counter()
+        # logger.debug(f'cv2resize:{input_image.size()}')
+        # logger.debug(f'cv2resize:{tic2-tic}')
+        # logger.debug(f'torch trans:{input_tensor.size()}')
+        # logger.debug(f'torch trans:{toc-tic2}')
+
+        # def inverse_normalize(tensor, mean, std):
+        #     for t, m, s in zip(tensor, mean, std):
+        #         t.mul_(s).add_(m)
+        #     return tensor
+        # input1 = inverse_normalize(tensor=input_image[0], mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        # input2 = inverse_normalize(tensor=input_tensor[0], mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        # show1 = input1.data.numpy().transpose(1,2,0)*255
+        # show1 = show1.astype(dtype=np.uint8)
+        # show2 = input2.data.numpy().transpose(1,2,0)*255
+        # show2 = show2.astype(dtype=np.uint8)
+        # print(show1[95,95])
+        # print(show2[95,95])
+        # cv2.imshow('cv2resize', show1)
+        # cv2.imshow('torchtrans', show2)
+        # cv2.waitKey(0)
+        # assert torch.all(input_image.eq(input_tensor))
+        # import pdb; pdb.set_trace()
+        
+        return input_image
+
+    def predict(self, np_images):
         '''
         batch inference
 
         Params
         ------
-        np_image_bgr_batch : list of ndarray
-            list of (H x W x C) in BGR
+        np_images : list of ndarray
+            list of (H x W x C), bgr or rgb according to self.bgr
         
         Returns
         ------
@@ -111,7 +148,7 @@ class MobileNetv2_Embedder(object):
         '''
         all_feats = []
 
-        preproc_imgs = [ preprocess(img) for img in np_image_bgr_batch ]
+        preproc_imgs = [ self.preprocess(img) for img in np_images ]
 
         for this_batch in batch(preproc_imgs, bs=self.max_batch_size):
             this_batch = torch.cat(this_batch, dim=0)
@@ -132,8 +169,8 @@ if __name__ == '__main__':
     auba = cv2.imread(impath)
     
     tic = time.time()
-    emb = MobileNetv2_Embedder(half=False, max_batch_size=32)
-    # emb = MobileNetv2_Embedder(half=True, max_batch_size=32)
+    # emb = MobileNetv2_Embedder(half=False, max_batch_size=32)
+    emb = MobileNetv2_Embedder(half=True, max_batch_size=32)
     toc = time.time()
     print(f'loading time: {toc - tic:0.4f}s')
 
@@ -148,4 +185,4 @@ if __name__ == '__main__':
             toc = time.time()
             dur += toc - tic
         print(np.shape(feats))
-        print(f'avrg inference {bs} time: {dur/reps:0.4f}s')
+        print(f'inference BS{bs} avrg time: {dur/reps:0.4f}s')
