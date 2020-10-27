@@ -28,29 +28,13 @@ for track in tracks:
    ltrb = track.to_ltrb()
 ```
 
-## Parameters
+## Differences from original repo
 
-For `deepsort_tracker_emb.py` (comes with in-built embedder):
-```
-Parameters
-----------
-max_age : Optional[int] = 30
-   Maximum number of missed misses before a track is deleted.
-nms_max_overlap : Optional[float] = 1.0
-   Non-maxima suppression threshold: Maximum detection overlap
-max_cosine_distance : Optional[float] = 0.2
-   Gating threshold for cosine distance
-nn_budget :  Optional[int] = None
-   Maximum size of the appearance descriptors, if None, no budget is enforced
-override_track_class : Optional[object] = None
-   Giving this will override default Track class, this must inherit Track
-clock : Optional[object] = None 
-   Clock custom object provides date for track naming and facilitates track id reset every day, preventing overflow and overly large track ids
-half : Optional[bool] = True
-   Whether to use half precision for deep embedder
-bgr : Optional[bool] = True
-   Whether frame given to embedder is expected to be BGR or not (RGB)
-```
+- remove "academic style" offline processing style and implemented it to take in real-time detections and output accordingly.
+- use mobilenetv2 as embedder instead (torch ftw).
+- skip nms completely in preprocessing detections if nms_max_overlap == 1.0 (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
+- deepsort takes in a "clock" object (see `utils/clock.py` for example), which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
+- other minor adjustments.
 
 ## [From original repo] Highlevel overview of source files in `deep_sort`
 

@@ -1,3 +1,4 @@
+import time
 import logging
 
 import cv2
@@ -37,7 +38,7 @@ class DeepSort(object):
         max_age : Optional[int] = 30
             Maximum number of missed misses before a track is deleted.
         nms_max_overlap : Optional[float] = 1.0
-            Non-maxima suppression threshold: Maximum detection overlap
+            Non-maxima suppression threshold: Maximum detection overlap, if is 1.0, nms will be disabled
         max_cosine_distance : Optional[float] = 0.2
             Gating threshold for cosine distance
         nn_budget :  Optional[int] = None
@@ -45,7 +46,7 @@ class DeepSort(object):
         override_track_class : Optional[object] = None
             Giving this will override default Track class, this must inherit Track
         clock : Optional[object] = None 
-            Clock custom object provides date for track naming and facilitates track id reset every day, preventing overflow and overly large track ids
+            Clock custom object provides date for track naming and facilitates track id reset every day, preventing overflow and overly large track ids. For example clock class, please see `utils/clock.py`
         half : Optional[bool] = True
             Whether to use half precision for deep embedder
         bgr : Optional[bool] = True
@@ -59,6 +60,12 @@ class DeepSort(object):
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
         self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         logger.info('DeepSort Tracker (with in-built embedder) initialised')
+        logger.info(f'- max age: {max_age}')
+        logger.info(f'- appearance threshold: {max_cosine_distance}')
+        logger.info(f'- nms threshold: {"OFF" if self.nms_max_overlap==1.0 else self.nms_max_overlap }')
+        logger.info(f'- max num of appearance features: {nn_budget}')
+        logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
+        logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
 
     def update_tracks(self, frame, raw_detections):
 
@@ -88,9 +95,13 @@ class DeepSort(object):
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.confidence for d in detections])
-        indices = preprocessing.non_max_suppression(
+        if self.nms_max_overlap < 1.0:
+            # nms_tic = time.perf_counter()
+            indices = preprocessing.non_max_suppression(
             boxes, self.nms_max_overlap, scores)
-        detections = [detections[i] for i in indices]
+            # nms_toc = time.perf_counter()
+            # logger.debug(f'nms time: {nms_toc-nms_tic}s')
+            detections = [detections[i] for i in indices]
 
         # Update tracker.
         self.tracker.predict()
@@ -125,7 +136,10 @@ class DeepSort(object):
         self.tracker._next_id
 
 if __name__ == '__main__':
-    tracker = DeepSort(max_age = 30, nn_budget=100)
+    from utils.clock import Clock
+    
+    clock = Clock()
+    tracker = DeepSort(max_age = 30, nn_budget=100, nms_max_overlap=1.0, clock=clock)
 
     impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
 
