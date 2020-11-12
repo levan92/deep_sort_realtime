@@ -24,7 +24,7 @@ Example usage:
 from deep_sort.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70)
 bbs = object_detector.detect(frame)
-tracks = trackers.update_tracks(frame, bbs)
+tracks = trackers.update_tracks(bbs, frame=frame)
 for track in tracks:
    track_id = track.track_id
    ltrb = track.to_ltrb()
@@ -54,3 +54,6 @@ In package `deep_sort` is the main tracking code:
 * `track.py`: The track class contains single-target track data such as Kalman
   state, number of hits, misses, hit streak, associated feature vectors, etc.
 * `tracker.py`: This is the multi-target tracker class.
+
+## Misc
+Ignore `deepsort_tracker_emb_dict.py` please, that is WIP. 
