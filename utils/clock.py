@@ -4,23 +4,28 @@ import logging
 from datetime import datetime, timedelta
 
 log_level = logging.DEBUG
-logger = logging.getLogger('Clock')
-logger.setLevel(log_level)
+default_logger = logging.getLogger('Clock (default logger)')
+default_logger.setLevel(log_level)
 handler = logging.StreamHandler()
 handler.setLevel(log_level)
 formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
 handler.setFormatter(formatter)
-logger.addHandler(handler)
+default_logger.addHandler(handler)
 
 class Clock(object):
-    def __init__(self):
+    def __init__(self, logger=None):
+        if logger is None:
+            self.logger = default_logger
+        else:
+            self.logger = logger
+
         tz_offset_hr = float(os.environ.get('TIMEZONE_OFFSET','0.0'))
         self.tz_offset = timedelta(hours=tz_offset_hr)
         self.dateOnly_strformat = '%d-%m' 
         self.dateWithYear_strformat = '%y%m%d' 
         self.datetime_strformat = '%Y-%m-%dT%H-%M-%S-%f' 
         self.register_now()
-        logger.info('Clock started at {}'.format(self.get_now_SGT_str()))
+        self.logger.info('Clock started at {}'.format(self.get_now_SGT_str()))
 
     def register_now(self):
         self.now = datetime.now()

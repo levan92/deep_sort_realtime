@@ -18,17 +18,17 @@ except:
     from .utils.nms import non_max_suppression
 
 log_level = logging.DEBUG
-logger = logging.getLogger('DeepSORT')
-logger.setLevel(log_level)
+default_logger = logging.getLogger('DeepSORT')
+default_logger.setLevel(log_level)
 handler = logging.StreamHandler()
 handler.setLevel(log_level)
 formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
 handler.setFormatter(formatter)
-logger.addHandler(handler)
+default_logger.addHandler(handler)
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True, logger=None):
         '''
         
         Parameters
@@ -51,7 +51,14 @@ class DeepSort(object):
             Whether to use half precision for deep embedder
         bgr : Optional[bool] = True
             Whether frame given to embedder is expected to be BGR or not (RGB)
+        logger : Optional[object] = None
+            logger object
         '''
+        if logger is None:
+            self.logger = default_logger
+        else:
+            self.logger = logger
+
         # self.video_info = video_info
         # assert clock is not None
         self.nms_max_overlap = nms_max_overlap
@@ -62,14 +69,14 @@ class DeepSort(object):
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
             self.embedder = None
-        logger.info('DeepSort Tracker initialised')
-        logger.info(f'- max age: {max_age}')
-        logger.info(f'- appearance threshold: {max_cosine_distance}')
-        logger.info(f'- nms threshold: {"OFF" if self.nms_max_overlap==1.0 else self.nms_max_overlap }')
-        logger.info(f'- max num of appearance features: {nn_budget}')
-        logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
-        logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
-        logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}' )
+        self.logger.info('DeepSort Tracker initialised')
+        self.logger.info(f'- max age: {max_age}')
+        self.logger.info(f'- appearance threshold: {max_cosine_distance}')
+        self.logger.info(f'- nms threshold: {"OFF" if self.nms_max_overlap==1.0 else self.nms_max_overlap }')
+        self.logger.info(f'- max num of appearance features: {nn_budget}')
+        self.logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
+        self.logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
+        self.logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}' )
 
     def update_tracks(self, raw_detections, embeds=None, frame=None):
 
