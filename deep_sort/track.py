@@ -44,6 +44,8 @@ class Track:
         Classname of detection prediction
     det_conf : Optional float
         Confidence associated with detection prediction
+    filename : Optional str
+        Filename to store image chips
 
     Attributes
     ----------
@@ -68,7 +70,7 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, det_class=None, det_conf=None):
+                 feature=None, det_class=None, det_conf=None, filename=None):
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id
@@ -86,6 +88,7 @@ class Track:
 
         self.det_class = det_class
         self.det_conf = det_conf
+        self.filename = filename
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
