@@ -4,6 +4,8 @@ import logging
 import cv2
 import numpy as np
 
+from itertools import cycle
+
 try:
     from deep_sort import nn_matching
     from deep_sort.detection import Detection
@@ -28,7 +30,7 @@ default_logger.addHandler(handler)
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True, logger=None):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True, logger=None, obb=False):
         '''
         
         Parameters
@@ -53,6 +55,8 @@ class DeepSort(object):
             Whether frame given to embedder is expected to be BGR or not (RGB)
         logger : Optional[object] = None
             logger object
+        obb: Optional[bool] = False
+            Whether detections are oriented bounding boxes
         '''
         if logger is None:
             self.logger = default_logger
@@ -69,6 +73,7 @@ class DeepSort(object):
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
             self.embedder = None
+        self.obb = obb
         self.logger.info('DeepSort Tracker initialised')
         self.logger.info(f'- max age: {max_age}')
         self.logger.info(f'- appearance threshold: {max_cosine_distance}')
@@ -84,8 +89,10 @@ class DeepSort(object):
 
         Parameters
         ----------
-        raw_detections : List[ Tuple[ List[float or int], float, str ] ]
+        raw_detections (horizontal bb) : List[ Tuple[ List[float or int], float, str ] ]
             List of detections, each in tuples of ( [left,top,w,h] , confidence, detection_class)
+        raw_detections (oriented bb) : List[ List[ List[float] ] ]
+            List of detections per class, each of [x1,y1,x2,y2,x3,y3,x4,y4,confidence]
         embeds : Optional[ List[] ] = None
             List of appearance features corresponding to detections
         frame : Optional [ np.ndarray ] = None
@@ -103,13 +110,20 @@ class DeepSort(object):
             if frame is None:
                 raise Exception('either embeddings or frame must be given!')
 
-        raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
+        if not self.obb:
+            raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
-        if embeds is None:
-            embeds = self.generate_embeds(frame, raw_detections)
-    
-        # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-        detections = self.create_detections(raw_detections, embeds)
+            if embeds is None:
+                embeds = self.generate_embeds(frame, raw_detections)
+        
+            # Proper deep sort detection objects that consist of bbox, confidence and embedding.
+            detections = self.create_detections(raw_detections, embeds)
+        else:
+            if embeds is None:
+                embeds = self.generate_embeds_obb(frame, raw_detections)
+            
+            # Proper deep sort detection objects that consist of bbox, confidence and embedding.
+            detections = self.create_detections_obb(raw_detections, embeds)
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -153,6 +167,71 @@ class DeepSort(object):
 
     def refresh_track_ids(self):
         self.tracker._next_id
+
+    def generate_embeds_obb(self, frame, raw_dets):
+        polygons = []
+
+        detections = np.concatenate(raw_dets)
+
+        for detection in detections:
+            points = [int(x) for x in detection[:-1]]
+            polygon = [points[x:x+2] for x in range(0, len(points), 2)]
+            polygons.append(polygon)
+
+        crops = self.crop_obbs_pad_black(frame, polygons)
+
+        return self.embedder.predict(crops)
+
+    def create_detections_obb(self, raw_dets, embeds):
+        embeds_cycle = cycle(embeds)
+        detection_list = []
+
+        for j in range(len(raw_dets)):
+            try:
+                dets = raw_dets[j] # detections for each class
+            except:
+                import pdb;
+                pdb.set_trace()
+
+            for det in dets:
+                score = det[-1]
+
+                points = [int(x) for x in det[:8]]
+                polygon = [points[x:x+2] for x in range(0, len(points), 2)]
+                polygon_mask = np.array([polygon])
+                x,y,w,h = cv2.boundingRect(polygon_mask) # in xywh
+                if w > 0 and h > 0:
+                    x = max(0, x)
+                    y = max(0, y)
+                    bbox = [x,y,w,h]
+                    detection_list.append(Detection(bbox, score, next(embeds_cycle), j))
+
+        return detection_list
+
+    @staticmethod
+    def crop_obbs_pad_black(frame, polygons):
+        im_height, im_width = frame.shape[:2]
+        masked_obbs = []
+
+        for polygon in polygons:
+            mask = np.zeros(frame.shape, dtype=np.uint8)
+            polygon_mask = np.array([polygon])
+            cv2.fillPoly(mask, polygon_mask, color=(255,255,255))
+
+            # apply the mask
+            masked_image = cv2.bitwise_and(frame, mask)
+
+            # crop masked image
+            x,y,w,h = cv2.boundingRect(polygon_mask)
+            if w > 0 and h > 0:
+                crop_l = max(0, x)
+                crop_r = min(im_width, x+w)
+                crop_t = max(0, y)
+                crop_b = min(im_height, y+h)
+                cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
+                masked_obbs.append(np.array(cropped))
+
+        return masked_obbs
 
 if __name__ == '__main__':
     from utils.clock import Clock
