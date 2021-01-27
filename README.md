@@ -57,5 +57,11 @@ In package `deep_sort` is the main tracking code:
   state, number of hits, misses, hit streak, associated feature vectors, etc.
 * `tracker.py`: This is the multi-target tracker class.
 
+## Test
+
+```bash
+python3 -m tests.test_bb
+```
+
 ## Misc
 Ignore `deepsort_tracker_emb_dict.py` please, that is WIP. 
