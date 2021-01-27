@@ -30,7 +30,7 @@ default_logger.addHandler(handler)
 
 class DeepSort(object):
 
-    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True, logger=None, obb=False):
+    def __init__(self, max_age = 30, nms_max_overlap=1.0, max_cosine_distance=0.2, nn_budget=None, override_track_class=None, clock=None, embedder=True, half=True, bgr=True, logger=None, polygon=False):
         '''
         
         Parameters
@@ -55,8 +55,8 @@ class DeepSort(object):
             Whether frame given to embedder is expected to be BGR or not (RGB)
         logger : Optional[object] = None
             logger object
-        obb: Optional[bool] = False
-            Whether detections are oriented bounding boxes
+        polygon: Optional[bool] = False
+            Whether detections are polygons (e.g. oriented bounding boxes)
         '''
         if logger is None:
             self.logger = default_logger
@@ -73,7 +73,7 @@ class DeepSort(object):
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
             self.embedder = None
-        self.obb = obb
+        self.polygon = polygon
         self.logger.info('DeepSort Tracker initialised')
         self.logger.info(f'- max age: {max_age}')
         self.logger.info(f'- appearance threshold: {max_cosine_distance}')
@@ -82,7 +82,7 @@ class DeepSort(object):
         self.logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
         self.logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
         self.logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}' )
-        self.logger.info(f'- obb : {"No" if obb is False else "Yes"}' )
+        self.logger.info(f'- polygon detections : {"No" if polygon is False else "Yes"}' )
 
     def update_tracks(self, raw_detections, embeds=None, frame=None):
 
@@ -111,7 +111,7 @@ class DeepSort(object):
             if frame is None:
                 raise Exception('either embeddings or frame must be given!')
 
-        if not self.obb:
+        if not self.polygon:
             raw_detections = [ d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
             if embeds is None:
@@ -121,10 +121,10 @@ class DeepSort(object):
             detections = self.create_detections(raw_detections, embeds)
         else:
             if embeds is None:
-                embeds = self.generate_embeds_obb(frame, raw_detections)
+                embeds = self.generate_embeds_poly(frame, raw_detections)
             
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections_obb(raw_detections, embeds)
+            detections = self.create_detections_poly(raw_detections, embeds)
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -169,7 +169,7 @@ class DeepSort(object):
     def refresh_track_ids(self):
         self.tracker._next_id
 
-    def generate_embeds_obb(self, frame, raw_dets):
+    def generate_embeds_poly(self, frame, raw_dets):
         polygons = []
         detections = np.concatenate(raw_dets)
 
@@ -178,11 +178,11 @@ class DeepSort(object):
             polygon = [points[x:x+2] for x in range(0, len(points), 2)]
             polygons.append(polygon)
 
-        crops = self.crop_obbs_pad_black(frame, polygons)
+        crops = self.crop_poly_pad_black(frame, polygons)
 
         return self.embedder.predict(crops)
 
-    def create_detections_obb(self, raw_dets, embeds):
+    def create_detections_poly(self, raw_dets, embeds):
         embeds_cycle = cycle(embeds)
         detection_list = []
 
@@ -208,9 +208,9 @@ class DeepSort(object):
         return detection_list
 
     @staticmethod
-    def crop_obbs_pad_black(frame, polygons):
+    def crop_poly_pad_black(frame, polygons):
         im_height, im_width = frame.shape[:2]
-        masked_obbs = []
+        masked_polys = []
 
         for polygon in polygons:
             mask = np.zeros(frame.shape, dtype=np.uint8)
@@ -227,9 +227,9 @@ class DeepSort(object):
             crop_t = max(0, y)
             crop_b = min(im_height, y+h)
             cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
-            masked_obbs.append(np.array(cropped))
+            masked_polys.append(np.array(cropped))
 
-        return masked_obbs
+        return masked_polys
 
 if __name__ == '__main__':
     from utils.clock import Clock
