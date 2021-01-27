@@ -92,8 +92,8 @@ class DeepSort(object):
         ----------
         raw_detections (horizontal bb) : List[ Tuple[ List[float or int], float, str ] ]
             List of detections, each in tuples of ( [left,top,w,h] , confidence, detection_class)
-        raw_detections (polygon) : List[ List[ List[float] ] ]
-            List of detections per class, each detection is a list / numpy array of [x1,y1,x2,y2,x3,y3,x4,y4,...,confidence], as many x and y coordinates as there are in the polygon
+        raw_detections (polygon) : List[ List[float], List[int or str], List[float] ]
+            List of Polygons, Classes, Confidences. All 3 sublists of the same length. A polygon defined as a ndarray-like [x1,y1,x2,y2,...]. 
         embeds : Optional[ List[] ] = None
             List of appearance features corresponding to detections
         frame : Optional [ np.ndarray ] = None
@@ -120,11 +120,13 @@ class DeepSort(object):
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
             detections = self.create_detections(raw_detections, embeds)
         else:
+            polygons, bounding_rects = self.process_polygons(raw_detections[0])
+            
             if embeds is None:
-                embeds = self.generate_embeds_poly(frame, raw_detections)
+                embeds = self.generate_embeds_poly(frame, polygons, bounding_rects)
             
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections_poly(raw_detections, embeds)
+            detections = self.create_detections_poly(raw_detections[1:], embeds, bounding_rects)
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -143,12 +145,45 @@ class DeepSort(object):
 
         return self.tracker.tracks
     
+    def refresh_track_ids(self):
+        self.tracker._next_id
+
     def generate_embeds(self, frame, raw_dets):
+        crops = self.crop_bb(frame, raw_dets)
+        return self.embedder.predict(crops)
+
+    def generate_embeds_poly(self, frame, polygons, bounding_rects):
+        crops = self.crop_poly_pad_black(frame, polygons, bounding_rects)
+        return self.embedder.predict(crops)
+
+    def create_detections(self, raw_dets, embeds):
+        detection_list = []
+        for raw_det, embed in zip(raw_dets,embeds):
+            detection_list.append(Detection(raw_det[0], raw_det[1], embed, raw_det[2])) #raw_det = [bbox, conf_score, class]
+        return detection_list
+
+    def create_detections_poly(self, dets, embeds, bounding_rects):
+        detection_list = []
+        dets.extend([embeds, bounding_rects])
+        for cl, score, embed, bounding_rect in zip(*dets):
+            x,y,w,h = bounding_rect
+            x = max(0, x)
+            y = max(0, y)
+            bbox = [x,y,w,h]
+            detection_list.append(Detection(bbox, score, embed, cl))
+        return detection_list
+
+    @staticmethod
+    def process_polygons(raw_polygons):
+        polygons = [ [ polygon[x:x+2] for x in range(0, len(polygon), 2) ]for polygon in raw_polygons ]
+        bounding_rects = [ cv2.boundingRect(np.array([polygon])) for polygon in polygons ] 
+        return polygons, bounding_rects
+
+    @staticmethod
+    def crop_bb(frame, raw_dets):
         crops = []
         im_height, im_width = frame.shape[:2]
         for detection in raw_dets:
-            # if detection is None:
-            #     continue
             l,t,w,h = [int(x) for x in detection[0]]
             r = l + w
             b = t + h
@@ -156,64 +191,14 @@ class DeepSort(object):
             crop_r = min(im_width, r)
             crop_t = max(0, t)
             crop_b = min(im_height, b)
-            crops.append(frame[ crop_t:crop_b, crop_l:crop_r ])
-        return self.embedder.predict(crops)
-
-    def create_detections(self, raw_dets, embeds):
-        detection_list = []
-        for raw_det, embed in zip(raw_dets,embeds):
-        # for i in range(len(raw_dets)):
-            detection_list.append(Detection(raw_det[0], raw_det[1], embed, raw_det[2])) #raw_det = [bbox, conf_score, class]
-        return detection_list
-
-    def refresh_track_ids(self):
-        self.tracker._next_id
-
-    def generate_embeds_poly(self, frame, raw_dets):
-        polygons = []
-        detections = list(chain.from_iterable(raw_dets))
-
-        for detection in detections:
-            points = [int(x) for x in detection[:-1]]
-            polygon = [points[x:x+2] for x in range(0, len(points), 2)]
-            polygons.append(polygon)
-
-        crops = self.crop_poly_pad_black(frame, polygons)
-
-        return self.embedder.predict(crops)
-
-    def create_detections_poly(self, raw_dets, embeds):
-        embeds_cycle = cycle(embeds)
-        detection_list = []
-
-        for j in range(len(raw_dets)):
-            try:
-                dets = raw_dets[j] # detections for each class
-            except:
-                import pdb;
-                pdb.set_trace()
-
-            for det in dets:
-                score = det[-1]
-
-                points = [int(x) for x in det[:8]]
-                polygon = [points[x:x+2] for x in range(0, len(points), 2)]
-                polygon_mask = np.array([polygon])
-                x,y,w,h = cv2.boundingRect(polygon_mask) # in xywh
-                x = max(0, x)
-                y = max(0, y)
-                bbox = [x,y,w,h]
-
-                detection_list.append(Detection(bbox, score, next(embeds_cycle), j))
-
-        return detection_list
-
+            crops.append(frame[crop_t:crop_b, crop_l:crop_r])
+        return crops
+    
     @staticmethod
-    def crop_poly_pad_black(frame, polygons):
-        im_height, im_width = frame.shape[:2]
+    def crop_poly_pad_black(frame, polygons, bounding_rects):
         masked_polys = []
-
-        for polygon in polygons:
+        im_height, im_width = frame.shape[:2]
+        for polygon, bounding_rect in zip(polygons, bounding_rects):
             mask = np.zeros(frame.shape, dtype=np.uint8)
             polygon_mask = np.array([polygon])
             cv2.fillPoly(mask, polygon_mask, color=(255,255,255))
@@ -222,12 +207,11 @@ class DeepSort(object):
             masked_image = cv2.bitwise_and(frame, mask)
 
             # crop masked image
-            x,y,w,h = cv2.boundingRect(polygon_mask)
+            x,y,w,h = bounding_rect
             crop_l = max(0, x)
             crop_r = min(im_width, x+w)
             crop_t = max(0, y)
             crop_b = min(im_height, y+h)
             cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
             masked_polys.append(np.array(cropped))
-
         return masked_polys
