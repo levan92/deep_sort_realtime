@@ -82,6 +82,7 @@ class DeepSort(object):
         self.logger.info(f'- overriding track class : {"No" if override_track_class is None else "Yes"}' )
         self.logger.info(f'- clock : {"No" if clock is None else "Yes"}' )
         self.logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}' )
+        self.logger.info(f'- obb : {"No" if obb is False else "Yes"}' )
 
     def update_tracks(self, raw_detections, embeds=None, frame=None):
 
