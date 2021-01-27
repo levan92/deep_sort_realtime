@@ -171,7 +171,6 @@ class DeepSort(object):
 
     def generate_embeds_obb(self, frame, raw_dets):
         polygons = []
-
         detections = np.concatenate(raw_dets)
 
         for detection in detections:
@@ -201,11 +200,10 @@ class DeepSort(object):
                 polygon = [points[x:x+2] for x in range(0, len(points), 2)]
                 polygon_mask = np.array([polygon])
                 x,y,w,h = cv2.boundingRect(polygon_mask) # in xywh
-                if w > 0 and h > 0:
-                    x = max(0, x)
-                    y = max(0, y)
-                    bbox = [x,y,w,h]
-                    detection_list.append(Detection(bbox, score, next(embeds_cycle), j))
+                x = max(0, x)
+                y = max(0, y)
+                bbox = [x,y,w,h]
+                detection_list.append(Detection(bbox, score, next(embeds_cycle), j))
 
         return detection_list
 
@@ -224,13 +222,12 @@ class DeepSort(object):
 
             # crop masked image
             x,y,w,h = cv2.boundingRect(polygon_mask)
-            if w > 0 and h > 0:
-                crop_l = max(0, x)
-                crop_r = min(im_width, x+w)
-                crop_t = max(0, y)
-                crop_b = min(im_height, y+h)
-                cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
-                masked_obbs.append(np.array(cropped))
+            crop_l = max(0, x)
+            crop_r = min(im_width, x+w)
+            crop_t = max(0, y)
+            crop_b = min(im_height, y+h)
+            cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
+            masked_obbs.append(np.array(cropped))
 
         return masked_obbs
 
