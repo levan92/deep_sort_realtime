@@ -37,7 +37,6 @@ class TestModule(unittest.TestCase):
             print(track.track_id)
             print(track.to_tlwh())
 
-
         print()
         print('FRAME3')
         # assume new frame
@@ -78,8 +77,41 @@ class TestModule(unittest.TestCase):
         print()
         print('FRAME1')
         frame1 = cv2.imread(MAGIC_TEST_IMAGE)
+        detections1 = [ [ np.array([0,0,10,0,10,10,0,10,0.5]), np.array([20,20,30,20,30,30,20,30,0.5]) ], np.zeros((0, 9)), [] ]
+        tracks = tracker.update_tracks(detections1, frame=frame1)
+        for track in tracks:
+            print(track.track_id)
+            print(track.to_tlwh())
 
-        # TODO
+        print()
+        print('FRAME2')
+        # assume new frame
+        frame2 = frame1
+        detections2 = [ [ np.array([10,0,20,0,30,10,10,10,0.5]), np.array([20,30,30,30,30,40,20,40,0.5]) ], np.zeros((0, 9)), [] ]
+        tracks = tracker.update_tracks(detections2, frame=frame2)
+        for track in tracks:
+            print(track.track_id)
+            print(track.to_tlwh())
+
+        print()
+        print('FRAME3')
+        # assume new frame
+        frame3 = frame1
+        detections3 = [ [np.array([0,0,10,0,10,10,5,15,0,10,0.5])], [], [np.array([20,20,30,20,30,30,20,30,0.5])] ]
+        tracks = tracker.update_tracks(detections3, frame=frame3)
+        for track in tracks:
+            print(track.track_id)
+            print(track.to_tlwh())
+
+        print()
+        print('FRAME4')
+        # assume new frame
+        frame4 = frame1
+        detections4 = [ [ np.array([0,0,10,0,10,10,0,10,0.5]), np.array([20,20,30,20,30,30,20,30,0.5]) ], [], [] ]
+        tracks = tracker.update_tracks(detections4, frame=frame4)
+        for track in tracks:
+            print(track.track_id)
+            print(track.to_tlwh())
 
         return True
 

@@ -4,7 +4,7 @@ import logging
 import cv2
 import numpy as np
 
-from itertools import cycle
+from itertools import cycle, chain
 
 try:
     from deep_sort import nn_matching
@@ -93,7 +93,7 @@ class DeepSort(object):
         raw_detections (horizontal bb) : List[ Tuple[ List[float or int], float, str ] ]
             List of detections, each in tuples of ( [left,top,w,h] , confidence, detection_class)
         raw_detections (polygon) : List[ List[ List[float] ] ]
-            List of detections per class, each of [x1,y1,x2,y2,x3,y3,x4,y4,...,confidence], as many x and y coordinates as there are in the polygon
+            List of detections per class, each detection is a list / numpy array of [x1,y1,x2,y2,x3,y3,x4,y4,...,confidence], as many x and y coordinates as there are in the polygon
         embeds : Optional[ List[] ] = None
             List of appearance features corresponding to detections
         frame : Optional [ np.ndarray ] = None
@@ -171,7 +171,7 @@ class DeepSort(object):
 
     def generate_embeds_poly(self, frame, raw_dets):
         polygons = []
-        detections = np.concatenate(raw_dets)
+        detections = list(chain.from_iterable(raw_dets))
 
         for detection in detections:
             points = [int(x) for x in detection[:-1]]
@@ -203,6 +203,7 @@ class DeepSort(object):
                 x = max(0, x)
                 y = max(0, y)
                 bbox = [x,y,w,h]
+
                 detection_list.append(Detection(bbox, score, next(embeds_cycle), j))
 
         return detection_list
