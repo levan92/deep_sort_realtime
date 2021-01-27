@@ -92,8 +92,8 @@ class DeepSort(object):
         ----------
         raw_detections (horizontal bb) : List[ Tuple[ List[float or int], float, str ] ]
             List of detections, each in tuples of ( [left,top,w,h] , confidence, detection_class)
-        raw_detections (oriented bb) : List[ List[ List[float] ] ]
-            List of detections per class, each of [x1,y1,x2,y2,x3,y3,x4,y4,confidence]
+        raw_detections (polygon) : List[ List[ List[float] ] ]
+            List of detections per class, each of [x1,y1,x2,y2,x3,y3,x4,y4,...,confidence], as many x and y coordinates as there are in the polygon
         embeds : Optional[ List[] ] = None
             List of appearance features corresponding to detections
         frame : Optional [ np.ndarray ] = None
