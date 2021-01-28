@@ -146,15 +146,28 @@ class TestModule(unittest.TestCase):
         ]
         tracks = tracker.update_tracks(detections4, frame=frame4)
         
-        correct_ans = [ np.array([-1.65656289, 3.48914218, 19.63792898, 19.81394538]), 
+        correct_ltwh_ans = [ np.array([-1.65656289, 3.48914218, 19.63792898, 19.81394538]), 
                         np.array([ 20.10337142, 20., 10.90833262,11. ]) ]        
-        for track, ans in zip(tracks, correct_ans):
+        correct_orig_ltwh_ans = [
+            [0.,  5., 16., 21.],
+            [20., 20., 11., 11.]
+        ]
+        correct_poly_ans = detections4[0]
+
+        for track, ltwh_ans, orig_ltwh_ans, poly_ans in zip(tracks, correct_ltwh_ans, correct_orig_ltwh_ans, correct_poly_ans):
             print(track.track_id)
+            
             ltwh = track.to_ltwh() 
             print(ltwh)
-            np.testing.assert_allclose(ltwh, ans)
-            print(track.to_tlwh(orig=True))
-            print(track.get_det_supplementary())
+            np.testing.assert_allclose(ltwh, ltwh_ans)
+            
+            orig_ltwh = track.to_ltwh(orig=True) 
+            print(orig_ltwh)
+            np.testing.assert_allclose(orig_ltwh, orig_ltwh_ans)
+
+            poly = track.get_det_supplementary() 
+            print(poly)
+            np.testing.assert_allclose(poly, poly_ans)
         
         toc = time.perf_counter()
         print(f'Avrg Duration per update: {(toc-tic)/4}')
