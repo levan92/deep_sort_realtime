@@ -89,7 +89,8 @@ class TestModule(unittest.TestCase):
         ]
         tracks = tracker.update_tracks(detections1, frame=frame1)
         
-        correct_ans = [ np.array([ 0., 0., 11., 11.]), np.array([ 20., 20., 11., 11.]) ]
+        correct_ans = [ np.array([ 0., 0., 11., 11.]), 
+                        np.array([ 20., 20., 11., 11.]) ]
         for track, ans in zip(tracks, correct_ans):
             print(track.track_id)
             ltwh = track.to_ltwh() 
@@ -106,9 +107,14 @@ class TestModule(unittest.TestCase):
             [0.5,0.6]
         ]
         tracks = tracker.update_tracks(detections2, frame=frame2)
-        for track in tracks:
+        
+        correct_ans = [ np.array([ 0., 0., 15.33884298, 15.33884298]), 
+                        np.array([ 22.21844112, 20., 10.90196074, 11.]) ]
+        for track, ans in zip(tracks, correct_ans):
             print(track.track_id)
-            print(track.to_tlwh())
+            ltwh = track.to_ltwh() 
+            print(ltwh)
+            np.testing.assert_allclose(ltwh, ans)
 
         print()
         print('FRAME3')
@@ -120,9 +126,14 @@ class TestModule(unittest.TestCase):
             [0.5,0.6]
         ]
         tracks = tracker.update_tracks(detections3, frame=frame3)
-        for track in tracks:
+        
+        correct_ans = [ np.array([ 0., 0., 16.12303476, 16.12303476]), 
+                        np.array([ 20.63971341, 20., 10.90477995, 11.]) ]
+        for track, ans in zip(tracks, correct_ans):
             print(track.track_id)
-            print(track.to_tlwh())
+            ltwh = track.to_ltwh() 
+            print(ltwh)
+            np.testing.assert_allclose(ltwh, ans)
 
         print()
         print('FRAME4')
@@ -134,9 +145,14 @@ class TestModule(unittest.TestCase):
             [0.9,0.6]
         ]
         tracks = tracker.update_tracks(detections4, frame=frame4)
-        for track in tracks:
+        
+        correct_ans = [ np.array([-1.65656289, 3.48914218, 19.63792898, 19.81394538]), 
+                        np.array([ 20.10337142, 20., 10.90833262,11. ]) ]        
+        for track, ans in zip(tracks, correct_ans):
             print(track.track_id)
-            print(track.to_tlwh())
+            ltwh = track.to_ltwh() 
+            print(ltwh)
+            np.testing.assert_allclose(ltwh, ans)
         
         toc = time.perf_counter()
         print(f'Avrg Duration per update: {(toc-tic)/4}')
