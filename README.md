@@ -40,6 +40,7 @@ for track in tracks:
 - Skip nms completely in preprocessing detections if `nms_max_overlap == 1.0` (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - Now able to override the `Track` class with a custom Track class (that inherits from `Track` class) for custom track logic 
 - Now takes in a "clock" object (see `utils/clock.py` for example), which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
+- Now supports polygon detections. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away.
 - Other minor adjustments.
 
 ## [From original repo] Highlevel overview of source files in `deep_sort`
@@ -56,6 +57,12 @@ In package `deep_sort` is the main tracking code:
 * `track.py`: The track class contains single-target track data such as Kalman
   state, number of hits, misses, hit streak, associated feature vectors, etc.
 * `tracker.py`: This is the multi-target tracker class.
+
+## Test
+
+```bash
+python3 -m tests.test_bb
+```
 
 ## Misc
 Ignore `deepsort_tracker_emb_dict.py` please, that is WIP. 
