@@ -82,7 +82,6 @@ class TestModule(unittest.TestCase):
         print()
         print('FRAME1')
         frame1 = np.ones((1080,1920,3), dtype=np.uint8) * 255
-
         detections1 = [
             [[0,0,10,0,10,10,0,10],[20,20,30,20,30,30,20,30]],
             [0,1],
@@ -126,7 +125,7 @@ class TestModule(unittest.TestCase):
         # assume new frame
         frame4 = frame1
         detections4 = [
-            [[0,5,15,5,15,10,10,25],[20,20,30,20,30,30,25,30]],
+            [[0.0,5.0,15.0,5.0,15.0,10.0,10.0,25.0],[20.0,20.0,30.0,20.0,30.0,30.0,25.0,30.0]],
             [3,3],
             [0.9,0.6]
         ]

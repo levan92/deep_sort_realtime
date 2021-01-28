@@ -4,8 +4,6 @@ import logging
 import cv2
 import numpy as np
 
-from itertools import cycle, chain
-
 try:
     from deep_sort import nn_matching
     from deep_sort.detection import Detection
@@ -176,7 +174,7 @@ class DeepSort(object):
     @staticmethod
     def process_polygons(raw_polygons):
         polygons = [ [ polygon[x:x+2] for x in range(0, len(polygon), 2) ]for polygon in raw_polygons ]
-        bounding_rects = [ cv2.boundingRect(np.array([polygon])) for polygon in polygons ] 
+        bounding_rects = [ cv2.boundingRect(np.array([polygon]).astype(int)) for polygon in polygons ] 
         return polygons, bounding_rects
 
     @staticmethod
@@ -200,7 +198,7 @@ class DeepSort(object):
         im_height, im_width = frame.shape[:2]
         for polygon, bounding_rect in zip(polygons, bounding_rects):
             mask = np.zeros(frame.shape, dtype=np.uint8)
-            polygon_mask = np.array([polygon])
+            polygon_mask = np.array([polygon]).astype(int)
             cv2.fillPoly(mask, polygon_mask, color=(255,255,255))
 
             # apply the mask
