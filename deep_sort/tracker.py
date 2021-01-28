@@ -37,7 +37,8 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=30, n_init=3, override_track_class=None, clock=None):
+    def __init__(self, metric, max_iou_distance=0.7, max_age=30, n_init=3, override_track_class=None, clock=None, logger=None):
+        self.logger = logger
         # assert clock is not None
         self.clock = clock
         if self.clock:
@@ -55,6 +56,7 @@ class Tracker:
             self.track_class = override_track_class
         else:
             self.track_class = Track
+        
 
     def predict(self):
         """Propagate track state distributions one time step forward.
@@ -164,5 +166,5 @@ class Tracker:
         self.tracks.append(self.track_class(
             mean, covariance, track_id, self.n_init, self.max_age,
             # mean, covariance, self._next_id, self.n_init, self.max_age,
-            feature=detection.feature, det_class=detection.class_name, det_conf=detection.confidence))
+            feature=detection.feature, det_class=detection.class_name, det_conf=detection.confidence, logger=self.logger))
         self._next_id += 1

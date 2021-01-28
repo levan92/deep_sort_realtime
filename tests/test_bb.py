@@ -153,6 +153,8 @@ class TestModule(unittest.TestCase):
             ltwh = track.to_ltwh() 
             print(ltwh)
             np.testing.assert_allclose(ltwh, ans)
+            print(track.to_tlwh(orig=True))
+            print(track.get_det_supplementary())
         
         toc = time.perf_counter()
         print(f'Avrg Duration per update: {(toc-tic)/4}')
