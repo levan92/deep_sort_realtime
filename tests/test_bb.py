@@ -88,9 +88,13 @@ class TestModule(unittest.TestCase):
             [0.5,0.5]
         ]
         tracks = tracker.update_tracks(detections1, frame=frame1)
-        for track in tracks:
+        
+        correct_ans = [ np.array([ 0., 0., 11., 11.]), np.array([ 20., 20., 11., 11.]) ]
+        for track, ans in zip(tracks, correct_ans):
             print(track.track_id)
-            print(track.to_tlwh())
+            ltwh = track.to_ltwh() 
+            print(ltwh)
+            np.testing.assert_allclose(ltwh, ans)
 
         print()
         print('FRAME2')
