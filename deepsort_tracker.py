@@ -68,7 +68,7 @@ class DeepSort(object):
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
             "cosine", max_cosine_distance, nn_budget)
-        self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock)
+        self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock, logger=self.logger)
         if embedder:
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
@@ -129,7 +129,7 @@ class DeepSort(object):
             detections = self.create_detections_poly(raw_detections, embeds, bounding_rects)
 
         # Run non-maxima suppression.
-        boxes = np.array([d.tlwh for d in detections])
+        boxes = np.array([d.ltwh for d in detections])
         scores = np.array([d.confidence for d in detections])
         if self.nms_max_overlap < 1.0:
             # nms_tic = time.perf_counter()

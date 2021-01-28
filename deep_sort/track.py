@@ -60,7 +60,7 @@ class Track:
     hits : int
         Total number of measurement updates.
     age : int
-        Total number of frames since first occurance.
+        Total number of frames since first occurrence.
     time_since_update : int
         Total number of frames since last measurement update.
     state : TrackState
@@ -132,7 +132,7 @@ class Track:
 
     def to_tlbr(self, orig=False):
         """Get current position in bounding box format `(min x, miny, max x,
-        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
+        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older projects that depend on this.
         USE THIS AT YOUR OWN RISK. LIESSSSSSSSSS!
         Returns LIES
         -------
