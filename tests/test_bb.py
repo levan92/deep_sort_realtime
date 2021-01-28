@@ -134,6 +134,8 @@ class TestModule(unittest.TestCase):
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
+            print(track.to_tlwh(orig=True))
+            print(track.get_det_supplementary())
         
         toc = time.perf_counter()
         print(f'Avrg Duration per update: {(toc-tic)/4}')

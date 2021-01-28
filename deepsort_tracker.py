@@ -126,7 +126,7 @@ class DeepSort(object):
                 embeds = self.generate_embeds_poly(frame, polygons, bounding_rects)
             
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections_poly(raw_detections[1:], embeds, bounding_rects)
+            detections = self.create_detections_poly(raw_detections, embeds, bounding_rects)
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
@@ -159,18 +159,18 @@ class DeepSort(object):
     def create_detections(self, raw_dets, embeds):
         detection_list = []
         for raw_det, embed in zip(raw_dets,embeds):
-            detection_list.append(Detection(raw_det[0], raw_det[1], embed, raw_det[2])) #raw_det = [bbox, conf_score, class]
+            detection_list.append(Detection(raw_det[0], raw_det[1], embed, class_name=raw_det[2])) #raw_det = [bbox, conf_score, class]
         return detection_list
 
     def create_detections_poly(self, dets, embeds, bounding_rects):
         detection_list = []
         dets.extend([embeds, bounding_rects])
-        for cl, score, embed, bounding_rect in zip(*dets):
+        for raw_polygon, cl, score, embed, bounding_rect in zip(*dets):
             x,y,w,h = bounding_rect
             x = max(0, x)
             y = max(0, y)
             bbox = [x,y,w,h]
-            detection_list.append(Detection(bbox, score, embed, cl))
+            detection_list.append(Detection(bbox, score, embed, class_name=cl, others=raw_polygon))
         return detection_list
 
     @staticmethod
