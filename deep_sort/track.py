@@ -1,6 +1,4 @@
 # vim: expandtab:ts=4:sw=4
-
-
 class TrackState:
     """
     Enumeration type for the single target track state. Newly created tracks are
@@ -40,10 +38,16 @@ class Track:
     feature : Optional[ndarray]
         Feature vector of the detection this track originates from. If not None,
         this feature is added to the `features` cache.
+    original_ltwh : Optional List
+        Bounding box associated with matched detection
     det_class : Optional str
-        Classname of detection prediction
+        Classname of matched detection
     det_conf : Optional float
-        Confidence associated with detection prediction
+        Confidence associated with matched detection
+    others : Optional any
+        Any supplementary fields related to matched detection
+    logger : Optional[object] = None
+        logger object passed in 
 
     Attributes
     ----------
@@ -56,7 +60,7 @@ class Track:
     hits : int
         Total number of measurement updates.
     age : int
-        Total number of frames since first occurance.
+        Total number of frames since first occurrence.
     time_since_update : int
         Total number of frames since last measurement update.
     state : TrackState
@@ -68,7 +72,8 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, det_class=None, det_conf=None):
+                 feature=None, original_ltwh=None, det_class=None, det_conf=None, others=None, logger=None):
+        self.logger = logger
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id
@@ -84,64 +89,95 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
 
+        self.original_ltwh = original_ltwh
         self.det_class = det_class
         self.det_conf = det_conf
+        self.others = others
 
-    def to_tlwh(self):
+    def to_tlwh(self, orig=False):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
 
         Returns
         -------
         ndarray
-            The bounding box.
-
+            The KF-predicted bounding box by default.
+            If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        return self.to_ltwh()
+        return self.to_ltwh(orig=orig)
 
-    def to_ltwh(self):
+    def to_ltwh(self, orig=False):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
+
+        Params
+        ------
+        orig : bool
+            To use original detection (True) or KF predicted (False). Only works for original dets that are horizontal BBs.
 
         Returns
         -------
         ndarray
-            The bounding box.
+            The KF-predicted bounding box by default.
+            If `orig` is True and track is matched to a detection this round, then the original det is returned.
 
         """
-        ret = self.mean[:4].copy()
-        ret[2] *= ret[3]
-        ret[:2] -= ret[2:] / 2
-        return ret
+        if orig and self.original_ltwh is not None:
+            return self.original_ltwh
+        else:
+            ret = self.mean[:4].copy()
+            ret[2] *= ret[3]
+            ret[:2] -= ret[2:] / 2
+            return ret
 
-    def to_tlbr(self):
+    def to_tlbr(self, orig=False):
         """Get current position in bounding box format `(min x, miny, max x,
-        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
+        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older projects that depend on this.
         USE THIS AT YOUR OWN RISK. LIESSSSSSSSSS!
         Returns LIES
         -------
         ndarray
-            The bounding box, in LTRB format
-
+            The KF-predicted bounding box by default.
+            If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        return self.to_ltrb()
+        return self.to_ltrb(orig=orig)
 
-    def to_ltrb(self):
+    def to_ltrb(self, orig=False):
         """Get current position in bounding box format `(min x, miny, max x,
         max y)`.
+
+        Params
+        ------
+        orig : bool
+            To use original detection (True) or KF predicted (False). Only works for original dets that are horizontal BBs.
 
         Returns
         -------
         ndarray
-            The bounding box.
-
+            The KF-predicted bounding box by default.
+            If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        ret = self.to_tlwh()
+        ret = self.to_ltwh(orig=orig)
         ret[2:] = ret[:2] + ret[2:]
         return ret
 
     def get_det_conf(self):
-        return 
+        '''
+        `det_conf` will be None is there are no associated detection this round
+        '''
+        return self.det_conf
+    
+    def get_det_class(self):
+        '''
+        Only `det_class` will be persisted in the track even if there are no associated detection this round.
+        '''
+        return self.det_class
+
+    def get_det_supplementary(self):
+        '''
+        Get supplementary info associated with the detection. Will be None is there are no associated detection this round.
+        '''
+        return self.others
 
     def predict(self, kf):
         """Propagate the state distribution to the current time step using a
@@ -156,7 +192,9 @@ class Track:
         self.mean, self.covariance = kf.predict(self.mean, self.covariance)
         self.age += 1
         self.time_since_update += 1
+        self.original_ltwh = None
         self.det_conf = None
+        self.others = None
 
     def update(self, kf, detection):
         """Perform Kalman filter measurement update step and update the feature
@@ -172,14 +210,13 @@ class Track:
         """
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
+        self.original_ltwh = detection.ltwh
         self.features.append(detection.feature)
-        # print("CONFIDENCE:",detection.confidence)
         self.det_conf = detection.confidence
-        # print('appending feature', len(detection.feature))
         self.det_class = detection.class_name
+        self.others = detection.others
 
         self.hits += 1
-        # print('track hits += 1')
 
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
