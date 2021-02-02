@@ -32,6 +32,24 @@ for track in tracks:
 
 - To add project-specific logic into the `Track` class, you can make a subclass (of `Track`) and pass it in (`override_track_class` argument) when instantiating `DeepSort`.
 
+## Getting bounding box of original detection
+
+The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. However, in some applications, it is better to return the bb values of the original detections the track was associated to at the current round. 
+
+Here we added an `orig` argument to all the `Track.to_*` methods. If `orig` is flagged as `True` and this track is associated to a detection this update round, then the bounding box values returned by the method will be that associated to the original detection. Otherwise, it will still return the Kalman predicted values.
+
+### Storing supplementary info of original detection 
+
+Supplementary info can be pass into the track from the detection. `Detection` class now has an `others` argument to store this and pass it to the associate track during update. Can be retrieved through `Track.get_det_supplementary` method.
+
+
+## Polygon support
+
+Other than horizontal bounding boxes, detections can now be given as polygons. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away. 
+
+When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` argument should be flagged to `True`. See `DeepSort.update_tracks` docstring for details on the polygon format. In polygon mode, the original polygon coordinates are passed to the associated track through the [supplementary info](#storing-supplementary-info-of-original-detection). 
+
+
 ## Differences from original repo
 
 - Remove "academic style" offline processing style and implemented it to take in real-time detections and output accordingly.
@@ -40,7 +58,9 @@ for track in tracks:
 - Skip nms completely in preprocessing detections if `nms_max_overlap == 1.0` (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - Now able to override the `Track` class with a custom Track class (that inherits from `Track` class) for custom track logic 
 - Now takes in a "clock" object (see `utils/clock.py` for example), which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
-- Now supports polygon detections. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away.
+- Now supports polygon detections. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away. [Read more here](#polygon-support)
+- The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. In some applications, it is better to return the bb values of the original detections the track was associated to at the current round. Added a `orig` argument which can be flagged `True` to get that. [Read more here](#getting-bounding-box-of-original-detection)
+- Added `get_det_supplementary` method to `Track` class, in order to pass detection related info through the track. [Read more here](#storing-supplementary-info-of-original-detection)
 - Other minor adjustments.
 
 ## [From original repo] Highlevel overview of source files in `deep_sort`
