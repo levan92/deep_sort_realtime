@@ -123,7 +123,7 @@ class Track:
 
         """
         if orig and self.original_ltwh is not None:
-            return self.original_ltwh
+            return self.original_ltwh.copy()
         else:
             ret = self.mean[:4].copy()
             ret[2] *= ret[3]
@@ -208,9 +208,9 @@ class Track:
             The associated detection.
 
         """
+        self.original_ltwh = detection.get_ltwh()
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
-        self.original_ltwh = detection.ltwh
         self.features.append(detection.feature)
         self.det_conf = detection.confidence
         self.det_class = detection.class_name

@@ -8,7 +8,7 @@ class Detection(object):
 
     Parameters
     ----------
-    tlwh : array_like
+    ltwh : array_like
         Bounding box in format `(x, y, w, h)`.
     confidence : float
         Detector confidence score.
@@ -37,6 +37,9 @@ class Detection(object):
         self.feature = np.asarray(feature, dtype=np.float32)
         self.class_name = class_name
         self.others = others
+
+    def get_ltwh(self):
+        return self.ltwh.copy()
 
     def to_tlbr(self):
         """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
