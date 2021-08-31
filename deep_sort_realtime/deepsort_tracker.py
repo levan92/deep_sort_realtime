@@ -61,7 +61,7 @@ class DeepSort(object):
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock, logger=self.logger)
         if embedder:
-            from deep_sort_realtime.embedder_pytorch import MobileNetv2_Embedder as Embedder
+            from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder as Embedder
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
             self.embedder = None
