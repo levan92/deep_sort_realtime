@@ -4,8 +4,8 @@ import time
 class TestModule(unittest.TestCase):
     def test_hbb(self):
 
-        from deepsort_tracker import DeepSort
-        from utils.clock import Clock
+        from deep_sort_realtime.deepsort_tracker import DeepSort
+        from deep_sort_realtime.utils.clock import Clock
 
         import cv2
         import numpy as np
@@ -68,8 +68,8 @@ class TestModule(unittest.TestCase):
 
     def test_obb(self):
 
-        from deepsort_tracker import DeepSort
-        from utils.clock import Clock
+        from deep_sort_realtime.deepsort_tracker import DeepSort
+        from deep_sort_realtime.utils.clock import Clock
 
         import cv2
         import numpy as np
