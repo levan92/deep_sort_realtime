@@ -19,12 +19,12 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 ## Run
 
 Example usage:
-- Include this repo as submodule
-- In the main project folder, install deep_sort_realtime as an editable package
-```
+- ~~Include this repo as submodule (old way)~~
+- ~~`deepsort_tracker.py` is your main point of entry~~
+- In the main project folder, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
+```bash
 cd deep_sort_realtime && pip3 install -e .
 ```
-- `deepsort_tracker.py` is your main point of entry
 ```python
 from deep_sort_realtime.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
