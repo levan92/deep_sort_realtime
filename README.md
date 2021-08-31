@@ -20,10 +20,13 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 
 Example usage:
 - Include this repo as submodule
+- In the main project folder, install deep_sort_realtime as an editable package
+```
+cd deep_sort_realtime && pip3 install -e .
+```
 - `deepsort_tracker.py` is your main point of entry
-
 ```python
-from deep_sort.deepsort_tracker import DeepSort
+from deep_sort_realtime.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
 bbs = object_detector.detect(frame)
 tracks = trackers.update_tracks(bbs, frame=frame)

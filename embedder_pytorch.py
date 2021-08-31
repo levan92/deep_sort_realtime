@@ -6,10 +6,7 @@ import numpy as np
 import torch
 from torchvision.transforms import transforms
 
-try:
-    from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
-except:
-    from .mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
+from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
