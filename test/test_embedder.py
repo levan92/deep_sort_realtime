@@ -1,16 +1,22 @@
 import unittest
+from pathlib import Path
+
+pardir = Path(__file__).parent
 
 def test_embedder_generic(model, thresh=10):
     import cv2
     import numpy as np
 
-    img = cv2.imread('test/smallapple.jpg')
+    imgpath = pardir / 'smallapple.jpg'
+    imgpath2 = pardir / 'rock.jpg'
+
+    img = cv2.imread(str(imgpath))
     small_angle = 1
     image_center = tuple(np.array(img.shape[1::-1]) / 2)
     rot_mat = cv2.getRotationMatrix2D(image_center, small_angle, 1.0)
     img_rot = cv2.warpAffine(img, rot_mat, img.shape[1::-1], flags=cv2.INTER_LINEAR, borderValue=(255,255,255))
 
-    img2 = cv2.imread('test/rock.jpg')
+    img2 = cv2.imread(str(imgpath2))
 
     emb = model(max_batch_size=4)
     a,b,c = emb.predict([img, img_rot, img2])

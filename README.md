@@ -93,16 +93,17 @@ In package `deep_sort` is the main tracking code:
 ```bash
 python3 -m unittest
 ```
+
 ## Appearance Embedding Network
 
 ### Pytorch Embedder (default)
 
-Default embedder is a pytorch MobilenetV2 (trained on Imagenet). 
+Default embedder is a pytorch MobilenetV2 (trained on Imagenet).
 
 For convenience (I know it's not exactly best practice) & since the weights file is quite small, it is pushed in this github repo and will be installed to your Python environment when you install deep_sort_realtime.  
 
 ### Tensorflow Embedder
 
-Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it. 
+Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it.
 
-The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) and put into `deep_sort_realtime/embedder/mobilenetv2_tf` directory or any of your choice as long as you specify in the arguments. 
+The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing).
