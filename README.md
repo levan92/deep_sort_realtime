@@ -8,7 +8,7 @@ A more realtime adaptation of Deep SORT.
 
 Adapted from the official repo of *Simple Online and Realtime Tracking with a Deep Association Metric* (Deep SORT): https://github.com/nwojke/deep_sort
 
-See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for more technical information.
+See their [paper](https://arxiv.org/abs/1703.07402) for more technical information.
 
 ## Dependencies
 
