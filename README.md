@@ -94,4 +94,4 @@ python3 -m unittest
 
 Available now, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1.
 
-MobilenetV2 weights (pretrained on imagenet): Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) and put into `./mobilenet_tf/` directory.
+MobilenetV2 weights (pretrained on imagenet): Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) and put into `deep_sort_realtime/embedder/mobilenetv2_tf` directory or any of your choice as long as you specify in the arguments. 
