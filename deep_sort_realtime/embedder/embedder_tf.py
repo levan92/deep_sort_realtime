@@ -1,9 +1,14 @@
+import os 
 import logging
 from pathlib import Path
 
 import cv2
 import numpy as np
 import tensorflow as tf
+
+DIR = os.path.dirname(os.path.realpath(__file__))
+# MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")
+MOBILENETV2_BOTTLENECK_WTS =os.path.join(DIR,"mobilenetv2_tf/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5")
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
@@ -58,9 +63,9 @@ class MobileNetv2_Embedder(object):
     '''
     def __init__(self, model_wts_path = None, max_batch_size = 16, bgr=True):
         if model_wts_path is None:
-            model_wts_path = 'mobilenetv2_tf/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5'
+            model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         model_wts_path = Path(model_wts_path)
-        assert model_wts_path.is_file(),'Mobilenetv2 model path does not exists!'
+        assert model_wts_path.is_file(),f'Mobilenetv2 model path {model_wts_path} does not exists!'
 
         self.model = get_mobilenetv2_with_preproc(wts=model_wts_path)
 
@@ -130,10 +135,6 @@ if __name__ == '__main__':
     emb = MobileNetv2_Embedder(max_batch_size=16)
     toc = time.time()
     print(f'loading time: {toc - tic:0.4f}s')
-
-    # aubas = [auba] * 16
-    # feats = emb.predict(aubas)
-    # print(np.shape(feats))
 
     bses = [1,16]
     reps = 100

@@ -95,3 +95,6 @@ deep_sort_app.py
 
 resources/
 tools/
+
+*.h5
+*.pt

@@ -6,10 +6,7 @@ import numpy as np
 import torch
 from torchvision.transforms import transforms
 
-try:
-    from mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
-except:
-    from .mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
+from deep_sort_realtime.embedder.mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
@@ -62,19 +59,9 @@ class MobileNetv2_Embedder(object):
         logger.info(f'- max batch size: {self.max_batch_size}')
         logger.info(f'- expects BGR: {self.bgr}')
 
-        # tic = time.time()
         zeros = np.zeros((100, 100, 3), dtype=np.uint8)
         self.predict([zeros]) #warmup
-        # toc = time.time()
-        # print('warm up time: {}s'.format(toc - tic))
 
-    # preproc_transforms = transforms.Compose([
-    #         transforms.ToPILImage(),
-    #         transforms.Resize(INPUT_WIDTH),
-    #         # transforms.CenterCrop(224),
-    #         transforms.ToTensor(),
-    #         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    #     ])
     def preprocess(self, np_image):
         '''
         Preprocessing for embedder network: Flips BGR to RGB, resize, convert to torch tensor, normalise with imagenet mean and variance, reshape. Note: input image yet to be loaded to GPU through tensor.cuda()
@@ -94,7 +81,6 @@ class MobileNetv2_Embedder(object):
         else:
             np_image_rgb = np_image
 
-        # tic = time.perf_counter()
         input_image = cv2.resize(np_image_rgb, (INPUT_WIDTH, INPUT_WIDTH))
         trans = transforms.Compose([
             transforms.ToTensor(),
@@ -102,33 +88,6 @@ class MobileNetv2_Embedder(object):
         ])
         input_image = trans(input_image)
         input_image = input_image.view(1,3,INPUT_WIDTH,INPUT_WIDTH)
-        
-        # tic2 = time.perf_counter()
-        # input_tensor = self.preproc_transforms(np_image_rgb)
-        # input_tensor = input_tensor.unsqueeze(0)
-        # toc = time.perf_counter()
-        # logger.debug(f'cv2resize:{input_image.size()}')
-        # logger.debug(f'cv2resize:{tic2-tic}')
-        # logger.debug(f'torch trans:{input_tensor.size()}')
-        # logger.debug(f'torch trans:{toc-tic2}')
-
-        # def inverse_normalize(tensor, mean, std):
-        #     for t, m, s in zip(tensor, mean, std):
-        #         t.mul_(s).add_(m)
-        #     return tensor
-        # input1 = inverse_normalize(tensor=input_image[0], mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-        # input2 = inverse_normalize(tensor=input_tensor[0], mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-        # show1 = input1.data.numpy().transpose(1,2,0)*255
-        # show1 = show1.astype(dtype=np.uint8)
-        # show2 = input2.data.numpy().transpose(1,2,0)*255
-        # show2 = show2.astype(dtype=np.uint8)
-        # print(show1[95,95])
-        # print(show2[95,95])
-        # cv2.imshow('cv2resize', show1)
-        # cv2.imshow('torchtrans', show2)
-        # cv2.waitKey(0)
-        # assert torch.all(input_image.eq(input_tensor))
-        # import pdb; pdb.set_trace()
         
         return input_image
 

@@ -147,16 +147,10 @@ class NearestNeighborDistanceMetric(object):
             A list of targets that are currently present in the scene.
 
         """
-        # print ('num target', len(targets))
-        # print ('shape features', features.shape)
         for feature, target in zip(features, targets):
             self.samples.setdefault(target, []).append(feature)
             if self.budget is not None:
                 self.samples[target] = self.samples[target][-self.budget:]
-                # print (target)
-                # print (self.samples.keys())
-                # print (len(self.samples[target]))
-                # print (self.samples[target][0].shape)
         self.samples = {k: self.samples[k] for k in active_targets}
 
     def distance(self, features, targets):

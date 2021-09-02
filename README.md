@@ -1,5 +1,7 @@
 # Deep SORT
 
+**NEW CHANGE PSA: recommend to install as a python package now, instead of including as a git submodule. See [Install section](#install).**
+
 ## Introduction
 
 A more realtime adaptation of Deep SORT.
@@ -10,20 +12,25 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 
 ## Dependencies
 
-- Python 3
+- Python3
 - NumPy
 - Scipy
 - cv2
-- (optional) Embedder requires Pytorch & Torchvision
+- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow
+
+## Install
+- ~~Include this repo as submodule (old way)~~
+- ~~`deepsort_tracker.py` is your main point of entry~~
+- In the main project folder, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
+```bash
+cd deep_sort_realtime && pip3 install -e .
+```
 
 ## Run
 
 Example usage:
-- Include this repo as submodule
-- `deepsort_tracker.py` is your main point of entry
-
 ```python
-from deep_sort.deepsort_tracker import DeepSort
+from deep_sort_realtime.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
 bbs = object_detector.detect(frame)
 tracks = trackers.update_tracks(bbs, frame=frame)
@@ -86,9 +93,16 @@ In package `deep_sort` is the main tracking code:
 ```bash
 python3 -m unittest
 ```
+## Appearance Embedding Network
 
-## Tensorflow Embedder
+### Pytorch Embedder (default)
 
-Available now, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1.
+Default embedder is a pytorch MobilenetV2 (trained on Imagenet). 
 
-MobilenetV2 weights (pretrained on imagenet): Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) and put into `./mobilenet_tf/` directory.
+For convenience (I know it's not exactly best practice) & since the weights file is quite small, it is pushed in this github repo and will be installed to your Python environment when you install deep_sort_realtime.  
+
+### Tensorflow Embedder
+
+Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it. 
+
+The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) and put into `deep_sort_realtime/embedder/mobilenetv2_tf` directory or any of your choice as long as you specify in the arguments. 

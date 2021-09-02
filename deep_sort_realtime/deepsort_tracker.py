@@ -4,16 +4,11 @@ import logging
 import cv2
 import numpy as np
 
-try:
-    from deep_sort import nn_matching
-    from deep_sort.detection import Detection
-    from deep_sort.tracker import Tracker
-    from utils.nms import non_max_suppression
-except:
-    from .deep_sort import nn_matching
-    from .deep_sort.detection import Detection
-    from .deep_sort.tracker import Tracker
-    from .utils.nms import non_max_suppression
+from deep_sort_realtime.deep_sort import nn_matching
+from deep_sort_realtime.deep_sort.detection import Detection
+from deep_sort_realtime.deep_sort.tracker import Tracker
+from deep_sort_realtime.utils.nms import non_max_suppression
+
 
 log_level = logging.DEBUG
 default_logger = logging.getLogger('DeepSORT')
@@ -66,10 +61,7 @@ class DeepSort(object):
             "cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_age = max_age, override_track_class=override_track_class, clock=clock, logger=self.logger)
         if embedder:
-            try:
-                from embedder_pytorch import MobileNetv2_Embedder as Embedder
-            except:
-                from .embedder_pytorch import MobileNetv2_Embedder as Embedder
+            from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder as Embedder
             self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
         else:
             self.embedder = None

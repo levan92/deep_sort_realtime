@@ -110,7 +110,6 @@ class Tracker:
             if not track.is_confirmed():
                 continue
             features += track.features
-            # print('IN TRACKER.PY: track',track.track_id, len(track.features))
             targets += [track.track_id for _ in track.features]
             track.features = [track.features[-1]]
         self.metric.partial_fit(
