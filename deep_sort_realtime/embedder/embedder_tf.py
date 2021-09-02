@@ -7,7 +7,7 @@ import numpy as np
 import pkg_resources
 import tensorflow as tf
 
-MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/mobilenetv2_tf/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5')
+MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/weights/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5')
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
@@ -121,29 +121,3 @@ class MobileNetv2_Embedder(object):
             all_feats.extend(output.numpy())
 
         return all_feats
-
-
-if __name__ == '__main__':
-    import cv2
-    import numpy as np
-    import time
-    impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
-    auba = cv2.imread(impath)
-    
-    tic = time.time()
-    emb = MobileNetv2_Embedder(max_batch_size=16)
-    toc = time.time()
-    print(f'loading time: {toc - tic:0.4f}s')
-
-    bses = [1,16]
-    reps = 100
-    for bs in bses:
-        aubas = [auba] * bs
-        dur = 0
-        for _ in range(reps):
-            tic = time.time()
-            feats = emb.predict(aubas)
-            toc = time.time()
-            dur += toc - tic
-        print(np.shape(feats))
-        print(f'inference BS{bs} avrg time: {dur/reps:0.4f}s')

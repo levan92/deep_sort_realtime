@@ -7,7 +7,7 @@ import pkg_resources
 import torch
 from torchvision.transforms import transforms
 
-from deep_sort_realtime.embedder.mobilenetv2.mobilenetv2_bottle import MobileNetV2_bottle
+from deep_sort_realtime.embedder.mobilenetv2_bottle import MobileNetV2_bottle
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
@@ -18,7 +18,7 @@ formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/mobilenetv2/mobilenetv2_bottleneck_wts.pt')
+MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/weights/mobilenetv2_bottleneck_wts.pt')
 INPUT_WIDTH = 224
 
 def batch(iterable, bs=1):
@@ -41,7 +41,7 @@ class MobileNetv2_Embedder(object):
     def __init__(self, model_wts_path = None, half=True, max_batch_size = 16, bgr=True):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
-        assert os.path.exists(model_wts_path),'Mobilenetv2 model path does not exists!'
+        assert os.path.exists(model_wts_path),f'Mobilenetv2 model path {model_wts_path} does not exists!'
         self.model = MobileNetV2_bottle(input_size=INPUT_WIDTH, width_mult=1.)
         self.model.load_state_dict(torch.load(model_wts_path))
         self.model.cuda() #loads model to gpu
@@ -118,29 +118,3 @@ class MobileNetv2_Embedder(object):
             all_feats.extend(output.cpu().data.numpy())
 
         return all_feats
-
-if __name__ == '__main__':
-    import cv2
-    import numpy as np
-    import time
-    impath = '/media/dh/HDD/sample_data/images/cute_doggies.jpg'
-    auba = cv2.imread(impath)
-    
-    tic = time.time()
-    # emb = MobileNetv2_Embedder(half=False, max_batch_size=32)
-    emb = MobileNetv2_Embedder(half=True, max_batch_size=32)
-    toc = time.time()
-    print(f'loading time: {toc - tic:0.4f}s')
-
-    bses = [1,16,32,100]
-    reps = 100
-    for bs in bses:
-        aubas = [auba] * bs
-        dur = 0
-        for _ in range(reps):
-            tic = time.time()
-            feats = emb.predict(aubas)
-            toc = time.time()
-            dur += toc - tic
-        print(np.shape(feats))
-        print(f'inference BS{bs} avrg time: {dur/reps:0.4f}s')
