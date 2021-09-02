@@ -136,10 +136,6 @@ if __name__ == '__main__':
     toc = time.time()
     print(f'loading time: {toc - tic:0.4f}s')
 
-    # aubas = [auba] * 16
-    # feats = emb.predict(aubas)
-    # print(np.shape(feats))
-
     bses = [1,16]
     reps = 100
     for bs in bses:
