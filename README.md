@@ -1,5 +1,7 @@
 # Deep SORT
 
+**NEW CHANGE PSA: recommend to install as a python package now, instead of including as a git submodule. See [Install section](#install).**
+
 ## Introduction
 
 A more realtime adaptation of Deep SORT.
@@ -14,17 +16,19 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 - NumPy
 - Scipy
 - cv2
-- (optional) Embedder requires Pytorch & Torchvision
+- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow
 
-## Run
-
-Example usage:
+## Install
 - ~~Include this repo as submodule (old way)~~
 - ~~`deepsort_tracker.py` is your main point of entry~~
 - In the main project folder, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
 ```bash
 cd deep_sort_realtime && pip3 install -e .
 ```
+
+## Run
+
+Example usage:
 ```python
 from deep_sort_realtime.deepsort_tracker import DeepSort
 tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
