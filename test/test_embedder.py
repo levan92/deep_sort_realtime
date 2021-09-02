@@ -25,11 +25,11 @@ def test_embedder_generic(model, thresh=10):
 
 class TestModule(unittest.TestCase):
     def test_embedder_torch(self):
-        from deep_sort_realtime.embedder_pytorch import MobileNetv2_Embedder
+        from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder
         return test_embedder_generic(MobileNetv2_Embedder)
 
     def test_embedder_tf(self):
-        from deep_sort_realtime.embedder_tf import MobileNetv2_Embedder
+        from deep_sort_realtime.embedder.embedder_tf import MobileNetv2_Embedder
         return test_embedder_generic(MobileNetv2_Embedder)
 
 if __name__ == '__main__':
