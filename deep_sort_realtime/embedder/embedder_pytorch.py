@@ -3,6 +3,7 @@ import logging
 
 import cv2
 import numpy as np
+import pkg_resources
 import torch
 from torchvision.transforms import transforms
 
@@ -17,9 +18,7 @@ formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-DIR = os.path.dirname(os.path.realpath(__file__))
-# MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")
-MOBILENETV2_BOTTLENECK_WTS =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottleneck_wts.pt")
+MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/mobilenetv2/mobilenetv2_bottleneck_wts.pt')
 INPUT_WIDTH = 224
 
 def batch(iterable, bs=1):

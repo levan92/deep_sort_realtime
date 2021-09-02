@@ -4,11 +4,10 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pkg_resources
 import tensorflow as tf
 
-DIR = os.path.dirname(os.path.realpath(__file__))
-# MOBILENETV2_BOTTLENECK_TORCH_MODEL =os.path.join(DIR,"mobilenetv2/mobilenetv2_bottle_py35.pt")
-MOBILENETV2_BOTTLENECK_WTS =os.path.join(DIR,"mobilenetv2_tf/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5")
+MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/mobilenetv2_tf/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5')
 
 log_level = logging.DEBUG
 logger = logging.getLogger('Embedder for Deepsort')
