@@ -12,7 +12,7 @@ See the Deep Sort's paper [arXiv preprint](https://arxiv.org/abs/1703.07402) for
 
 ## Dependencies
 
-- Python 3
+- Python3
 - NumPy
 - Scipy
 - cv2
