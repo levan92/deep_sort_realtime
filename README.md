@@ -20,9 +20,12 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 
 - via PyPI through `pip3 install deep-sort-realtime`
 - or clone this repo, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
+
 ```bash
-cd deep_sort_realtime && pip3 install -e .
+cd deep_sort_realtime && pip3 install .
 ```
+
+- or, download `.whl` file in this repo's [releases](https://github.com/levan92/deep_sort_realtime/releases/latest)
 
 ## Run
 
@@ -104,4 +107,4 @@ For convenience (I know it's not exactly best practice) & since the weights file
 
 Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it.
 
-The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing). You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
+The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) or run [download script](./deep_sort_realtime/embedder/weights/download_tf_wts.sh). You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
