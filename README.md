@@ -21,10 +21,12 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 ## Install
 - ~~Include this repo as submodule (old way)~~
 - ~~`deepsort_tracker.py` is your main point of entry~~
-- In the main project folder, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
+- In the main project folder, install `det2` as a python package using `pip` or as an editable package if you like (`-e` flag after `pip`)
+
 ```bash
-cd deep_sort_realtime && pip3 install -e .
+cd deep_sort_realtime && pip3 install .
 ```
+- Or, download `.whl` file in this repo's [releases](https://github.com/levan92/deep_sort_realtime/releases/latest)
 
 ## Run
 
