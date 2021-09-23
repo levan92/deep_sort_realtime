@@ -18,8 +18,8 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 
 ## Install
 
-- via PyPI through `pip3 install deep-sort-realtime`
-- or clone this repo, install deep_sort_realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
+- from [PyPI](https://pypi.org/project/deep-sort-realtime/) via `pip3 install deep-sort-realtime`
+- or, clone this repo & install deep-sort-realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
 
 ```bash
 cd deep_sort_realtime && pip3 install .
