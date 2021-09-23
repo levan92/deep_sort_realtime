@@ -9,14 +9,7 @@ import tensorflow as tf
 
 MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/weights/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5')
 
-log_level = logging.DEBUG
-logger = logging.getLogger('Embedder for Deepsort')
-logger.setLevel(log_level)
-handler = logging.StreamHandler()
-handler.setLevel(log_level)
-formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = logging.getLogger(__name__)
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:

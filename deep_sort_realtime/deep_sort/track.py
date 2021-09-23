@@ -46,8 +46,6 @@ class Track:
         Confidence associated with matched detection
     others : Optional any
         Any supplementary fields related to matched detection
-    logger : Optional[object] = None
-        logger object passed in 
 
     Attributes
     ----------
@@ -72,8 +70,7 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, original_ltwh=None, det_class=None, det_conf=None, others=None, logger=None):
-        self.logger = logger
+                 feature=None, original_ltwh=None, det_class=None, det_conf=None, others=None):
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id

@@ -9,14 +9,7 @@ from torchvision.transforms import transforms
 
 from deep_sort_realtime.embedder.mobilenetv2_bottle import MobileNetV2_bottle
 
-log_level = logging.DEBUG
-logger = logging.getLogger('Embedder for Deepsort')
-logger.setLevel(log_level)
-handler = logging.StreamHandler()
-handler.setLevel(log_level)
-formatter = logging.Formatter('[%(levelname)s] [%(name)s] %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = logging.getLogger(__name__)
 
 MOBILENETV2_BOTTLENECK_WTS = pkg_resources.resource_filename('deep_sort_realtime', 'embedder/weights/mobilenetv2_bottleneck_wts.pt')
 INPUT_WIDTH = 224
