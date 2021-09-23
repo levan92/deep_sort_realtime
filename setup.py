@@ -4,25 +4,23 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-        name='deep-sort-realtime', 
-        version='1.0', 
-        author="levan92",
-        author_email="lingevan0208@gmail.com",
-        description="A more realtime adaptation of Deep SORT",
-        long_description=long_description,
-        long_description_content_type="text/markdown",
-        url='https://github.com/levan92/deep_sort_realtime',
-        classifiers=[
-            "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: MIT License",
-            "Operating System :: OS Independent",
-        ],
-        packages=find_packages(exclude=("test",)),
-        package_data={
-          'deep_sort_realtime.embedder': ['weights/*']
-        },
-        install_requires=[
-            'numpy',
-            'scipy',
-        ]
-    )
+    name="deep-sort-realtime",
+    version="1.1",
+    author="levan92",
+    author_email="lingevan0208@gmail.com",
+    description="A more realtime adaptation of Deep SORT",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/levan92/deep_sort_realtime",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    packages=find_packages(exclude=("test",)),
+    package_data={"deep_sort_realtime.embedder": ["weights/*"]},
+    install_requires=[
+        "numpy",
+        "scipy",
+    ],
+)

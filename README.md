@@ -68,7 +68,13 @@ When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` 
 - Due to special request, tensorflow embedder is available now too (very unwillingly included). 
 - Skip nms completely in preprocessing detections if `nms_max_overlap == 1.0` (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - Now able to override the `Track` class with a custom Track class (that inherits from `Track` class) for custom track logic 
-- Now takes in a "clock" object (see `utils/clock.py` for example), which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
+- Takes in today's date now, which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
+  
+  ```python3
+  from datetime import datetime
+  today = datetime.now().date()
+  ```
+
 - Now supports polygon detections. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away. [Read more here](#polygon-support).
 - The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. In some applications, it is better to return the bb values of the original detections the track was associated to at the current round. Added a `orig` argument which can be flagged `True` to get that. [Read more here](#getting-bounding-box-of-original-detection).
 - Added `get_det_supplementary` method to `Track` class, in order to pass detection related info through the track. [Read more here](#storing-supplementary-info-of-original-detection).

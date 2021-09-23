@@ -15,7 +15,7 @@ class Detection(object):
     feature : array_like
         A feature vector that describes the object contained in this image.
     class_name : Optional str
-        Detector predicted class name. 
+        Detector predicted class name.
     others : Optional any
         Other supplementary fields associated with detection that wants to be stored as a "memory" to be retrieve through the track downstream.
 
@@ -31,7 +31,7 @@ class Detection(object):
     """
 
     def __init__(self, ltwh, confidence, feature, class_name=None, others=None):
-    # def __init__(self, ltwh, feature):
+        # def __init__(self, ltwh, feature):
         self.ltwh = np.asarray(ltwh, dtype=np.float)
         self.confidence = float(confidence)
         self.feature = np.asarray(feature, dtype=np.float32)
