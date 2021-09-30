@@ -36,7 +36,9 @@ class MobileNetv2_Embedder(object):
     - gpu (optional, Bool) : boolean flag indicating if gpu is enabled or not
     """
 
-    def __init__(self, model_wts_path=None, half=True, max_batch_size=16, bgr=True, gpu=True):
+    def __init__(
+        self, model_wts_path=None, half=True, max_batch_size=16, bgr=True, gpu=True
+    ):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         assert os.path.exists(
@@ -44,7 +46,7 @@ class MobileNetv2_Embedder(object):
         ), f"Mobilenetv2 model path {model_wts_path} does not exists!"
         self.model = MobileNetV2_bottle(input_size=INPUT_WIDTH, width_mult=1.0)
         self.model.load_state_dict(torch.load(model_wts_path))
-     
+
         self.gpu = gpu
         if self.gpu:
             self.model.cuda()  # loads model to gpu

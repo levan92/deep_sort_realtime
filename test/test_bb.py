@@ -4,7 +4,9 @@ import time
 from datetime import datetime
 
 import torch
-GPU = torch.cuda.is_available() and not os.environ.get('USE_CPU')
+
+GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
+
 
 class TestModule(unittest.TestCase):
     def test_hbb(self):
@@ -15,7 +17,12 @@ class TestModule(unittest.TestCase):
 
         today = datetime.now().date()
         tracker = DeepSort(
-            max_age=30, nn_budget=100, nms_max_overlap=1.0, embedder=True, today=today, embedder_gpu=GPU
+            max_age=30,
+            nn_budget=100,
+            nms_max_overlap=1.0,
+            embedder=True,
+            today=today,
+            embedder_gpu=GPU,
         )
 
         tic = time.perf_counter()
@@ -93,7 +100,12 @@ class TestModule(unittest.TestCase):
         import numpy as np
 
         tracker = DeepSort(
-            max_age=30, nn_budget=100, nms_max_overlap=1.0, embedder=True, polygon=True, embedder_gpu=GPU
+            max_age=30,
+            nn_budget=100,
+            nms_max_overlap=1.0,
+            embedder=True,
+            polygon=True,
+            embedder_gpu=GPU,
         )
 
         tic = time.perf_counter()

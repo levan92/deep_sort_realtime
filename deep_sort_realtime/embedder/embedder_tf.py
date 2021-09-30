@@ -62,8 +62,8 @@ class MobileNetv2_Embedder(object):
 
     def __init__(self, model_wts_path=None, max_batch_size=16, bgr=True, gpu=True):
 
-        if not gpu: 
-            os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        if not gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
