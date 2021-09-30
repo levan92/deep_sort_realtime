@@ -10,6 +10,10 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 
 ## Dependencies
 
+See `requirements.txt`
+
+Main ones are: 
+
 - Python3
 - NumPy
 - Scipy
