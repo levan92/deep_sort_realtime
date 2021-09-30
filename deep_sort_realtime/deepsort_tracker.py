@@ -25,6 +25,7 @@ class DeepSort(object):
         bgr=True,
         polygon=False,
         today=None,
+        embedder_gpu=True,
     ):
         """
 
@@ -50,6 +51,8 @@ class DeepSort(object):
             Whether detections are polygons (e.g. oriented bounding boxes)
         today: Optional[datetime.date]
             Provide today's date, for naming of tracks
+        embedder_gpu: Optional[bool] = True
+            Whether embedder uses gpu or not
         """
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
@@ -66,7 +69,7 @@ class DeepSort(object):
                 MobileNetv2_Embedder as Embedder,
             )
 
-            self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr)
+            self.embedder = Embedder(half=half, max_batch_size=16, bgr=bgr, gpu=embedder_gpu)
         else:
             self.embedder = None
         self.polygon = polygon

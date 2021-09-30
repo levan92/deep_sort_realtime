@@ -33,10 +33,10 @@ class MobileNetv2_Embedder(object):
     - half (optional, Bool) : boolean flag to use half precision or not, defaults to True
     - max_batch_size (optional, int) : max batch size for embedder, defaults to 16
     - bgr (optional, Bool) : boolean flag indicating if input frames are bgr or not, defaults to True
-
+    - gpu (optional, Bool) : boolean flag indicating if gpu is enabled or not
     """
 
-    def __init__(self, model_wts_path=None, half=True, max_batch_size=16, bgr=True):
+    def __init__(self, model_wts_path=None, half=True, max_batch_size=16, bgr=True, gpu=True):
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         assert os.path.exists(
@@ -44,16 +44,23 @@ class MobileNetv2_Embedder(object):
         ), f"Mobilenetv2 model path {model_wts_path} does not exists!"
         self.model = MobileNetV2_bottle(input_size=INPUT_WIDTH, width_mult=1.0)
         self.model.load_state_dict(torch.load(model_wts_path))
-        self.model.cuda()  # loads model to gpu
+     
+        self.gpu = gpu
+        if self.gpu:
+            self.model.cuda()  # loads model to gpu
+            self.half = half
+            if self.half:
+                self.model.half()
+        else:
+            self.half = False
+
         self.model.eval()  # inference mode, deactivates dropout layers
 
         self.max_batch_size = max_batch_size
         self.bgr = bgr
 
-        self.half = half
-        if self.half:
-            self.model.half()
         logger.info("MobileNetV2 Embedder for Deep Sort initialised")
+        logger.info(f"- gpu enabled: {self.gpu}")
         logger.info(f"- half precision: {self.half}")
         logger.info(f"- max batch size: {self.max_batch_size}")
         logger.info(f"- expects BGR: {self.bgr}")
@@ -114,9 +121,10 @@ class MobileNetv2_Embedder(object):
 
         for this_batch in batch(preproc_imgs, bs=self.max_batch_size):
             this_batch = torch.cat(this_batch, dim=0)
-            this_batch = this_batch.cuda()
-            if self.half:
-                this_batch = this_batch.half()
+            if self.gpu:
+                this_batch = this_batch.cuda()
+                if self.half:
+                    this_batch = this_batch.half()
             output = self.model.forward(this_batch)
 
             all_feats.extend(output.cpu().data.numpy())
