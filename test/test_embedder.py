@@ -7,6 +7,13 @@ import torch
 
 GPU = torch.cuda.is_available()
 
+try:
+    import tensorflow
+
+    TF_INSTALLED = True
+except ModuleNotFoundError:
+    TF_INSTALLED = False
+
 
 def test_embedder_generic(Embedder_object, thresh=10, gpu=GPU):
     import cv2
@@ -54,6 +61,7 @@ class TestModule(unittest.TestCase):
         print("Testing pytorch embedder")
         return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
 
+    @unittest.skipIf(not TF_INSTALLED, "Tensorflow is not installed")
     def test_embedder_tf(self):
         from deep_sort_realtime.embedder.embedder_tf import MobileNetv2_Embedder
 
@@ -62,6 +70,7 @@ class TestModule(unittest.TestCase):
             MobileNetv2_Embedder,
         )
 
+    @unittest.skipIf(not TF_INSTALLED, "Tensorflow is not installed")
     def test_embedder_tf_cpu(self):
         from deep_sort_realtime.embedder.embedder_tf import MobileNetv2_Embedder
 
