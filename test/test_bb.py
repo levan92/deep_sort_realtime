@@ -1,6 +1,11 @@
+import os
 import unittest
 import time
 from datetime import datetime
+
+import torch
+
+GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
 
 
 class TestModule(unittest.TestCase):
@@ -8,12 +13,16 @@ class TestModule(unittest.TestCase):
 
         from deep_sort_realtime.deepsort_tracker import DeepSort
 
-        import cv2
         import numpy as np
 
         today = datetime.now().date()
         tracker = DeepSort(
-            max_age=30, nn_budget=100, nms_max_overlap=1.0, embedder=True, today=today
+            max_age=30,
+            nn_budget=100,
+            nms_max_overlap=1.0,
+            embedder=True,
+            today=today,
+            embedder_gpu=GPU,
         )
 
         tic = time.perf_counter()
@@ -88,11 +97,15 @@ class TestModule(unittest.TestCase):
 
         from deep_sort_realtime.deepsort_tracker import DeepSort
 
-        import cv2
         import numpy as np
 
         tracker = DeepSort(
-            max_age=30, nn_budget=100, nms_max_overlap=1.0, embedder=True, polygon=True
+            max_age=30,
+            nn_budget=100,
+            nms_max_overlap=1.0,
+            embedder=True,
+            polygon=True,
+            embedder_gpu=GPU,
         )
 
         tic = time.perf_counter()

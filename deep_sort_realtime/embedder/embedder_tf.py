@@ -57,10 +57,14 @@ class MobileNetv2_Embedder(object):
     - model_wts_path (optional, str) : path to mobilenetv2 model weights, defaults to the model file in ./mobilenetv2
     - max_batch_size (optional, int) : max batch size for embedder, defaults to 16
     - bgr (optional, Bool) : boolean flag indicating if input frames are bgr or not, defaults to True
-
+    - gpu (optional, Bool) : boolean flag indicating if gpu is enabled or not
     """
 
-    def __init__(self, model_wts_path=None, max_batch_size=16, bgr=True):
+    def __init__(self, model_wts_path=None, max_batch_size=16, bgr=True, gpu=True):
+
+        if not gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
         if model_wts_path is None:
             model_wts_path = MOBILENETV2_BOTTLENECK_WTS
         model_wts_path = Path(model_wts_path)

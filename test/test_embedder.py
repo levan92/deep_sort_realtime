@@ -3,8 +3,12 @@ from pathlib import Path
 
 pardir = Path(__file__).parent
 
+import torch
 
-def test_embedder_generic(model, thresh=10):
+GPU = torch.cuda.is_available()
+
+
+def test_embedder_generic(Embedder_object, thresh=10, gpu=GPU):
     import cv2
     import numpy as np
 
@@ -25,7 +29,7 @@ def test_embedder_generic(model, thresh=10):
 
     img2 = cv2.imread(str(imgpath2))
 
-    emb = model(max_batch_size=4)
+    emb = Embedder_object(max_batch_size=4, gpu=gpu)
     a, b, c = emb.predict([img, img_rot, img2])
 
     small = np.linalg.norm(a - b)
@@ -41,12 +45,28 @@ class TestModule(unittest.TestCase):
     def test_embedder_torch(self):
         from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder
 
+        print("Testing pytorch embedder")
         return test_embedder_generic(MobileNetv2_Embedder)
+
+    def test_embedder_torch_cpu(self):
+        from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder
+
+        print("Testing pytorch embedder")
+        return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
 
     def test_embedder_tf(self):
         from deep_sort_realtime.embedder.embedder_tf import MobileNetv2_Embedder
 
-        return test_embedder_generic(MobileNetv2_Embedder)
+        print("Testing pytorch embedder in cpu")
+        return test_embedder_generic(
+            MobileNetv2_Embedder,
+        )
+
+    def test_embedder_tf_cpu(self):
+        from deep_sort_realtime.embedder.embedder_tf import MobileNetv2_Embedder
+
+        print("Testing tf embedder in cpu")
+        return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
 
 
 if __name__ == "__main__":
