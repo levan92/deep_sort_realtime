@@ -77,6 +77,18 @@ class TestModule(unittest.TestCase):
         print("Testing tf embedder in cpu")
         return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
 
+    def test_embedder_clip(self):
+        from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
+
+        print("Testing CLIP embedder")
+        return test_embedder_generic(Clip_Embedder, thresh=8)
+
+    def test_embedder_clip_cpu(self):
+        from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
+
+        print("Testing CLIP embedder")
+        return test_embedder_generic(Clip_Embedder, gpu=False, thresh=8)
+
 
 if __name__ == "__main__":
     unittest.main()

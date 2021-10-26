@@ -20,7 +20,7 @@ class TestModule(unittest.TestCase):
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder=True,
+            embedder='mobilenet',
             today=today,
             embedder_gpu=GPU,
         )
@@ -103,7 +103,7 @@ class TestModule(unittest.TestCase):
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder=True,
+            embedder='mobilenet',
             polygon=True,
             embedder_gpu=GPU,
         )
