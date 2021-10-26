@@ -47,7 +47,7 @@ class Clip_Embedder(object):
 
         logger.info("Clip Embedder for Deep Sort initialised")
         logger.info(f"- gpu enabled: {gpu}")
-        logger.info(f"- jit: {self.max_batch_size}")
+        logger.info(f"- max batch size: {self.max_batch_size}")
         logger.info(f"- expects BGR: {self.bgr}")
         logger.info(f"- model name: {model_name}")
 
