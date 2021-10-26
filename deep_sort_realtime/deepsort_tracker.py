@@ -11,6 +11,8 @@ from deep_sort_realtime.utils.nms import non_max_suppression
 
 logger = logging.getLogger(__name__)
 
+EMBEDDER_CHOICES = ['mobilenet', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
+
 
 class DeepSort(object):
     def __init__(
@@ -20,7 +22,7 @@ class DeepSort(object):
         max_cosine_distance=0.2,
         nn_budget=None,
         override_track_class=None,
-        embedder=True,
+        embedder=None,
         half=True,
         bgr=True,
         polygon=False,
@@ -41,10 +43,11 @@ class DeepSort(object):
             Maximum size of the appearance descriptors, if None, no budget is enforced
         override_track_class : Optional[object] = None
             Giving this will override default Track class, this must inherit Track
-        embedder : Optional[bool] = True
-            Whether to use in-built embedder or not. If False, then embeddings must be given during update
+        embedder : Optional[str] = None
+            Whether to use in-built embedder or not. If None, then embeddings must be given during update.
+            Choice of ['mobilenet', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
         half : Optional[bool] = True
-            Whether to use half precision for deep embedder
+            Whether to use half precision for deep embedder (applicable for mobilenet only)
         bgr : Optional[bool] = True
             Whether frame given to embedder is expected to be BGR or not (RGB)
         polygon: Optional[bool] = False
@@ -64,14 +67,24 @@ class DeepSort(object):
             override_track_class=override_track_class,
             today=today,
         )
-        if embedder:
-            from deep_sort_realtime.embedder.embedder_pytorch import (
-                MobileNetv2_Embedder as Embedder,
-            )
 
-            self.embedder = Embedder(
-                half=half, max_batch_size=16, bgr=bgr, gpu=embedder_gpu
-            )
+        if embedder is not None:
+            if embedder not in EMBEDDER_CHOICES:
+                raise Exception(f"Embedder {embedder} is not a valid choice.")
+            if embedder == "mobilenet":
+                from deep_sort_realtime.embedder.embedder_pytorch import (
+                    MobileNetv2_Embedder as Embedder,
+                )
+                self.embedder = Embedder(
+                    half=half, max_batch_size=16, bgr=bgr, gpu=embedder_gpu
+                )
+            else:
+                from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder as Embedder
+                model_name = '_'.join(embedder.split('_')[1:])
+                self.embedder = Embedder(
+                    model_name=model_name, max_batch_size=16, bgr=bgr, gpu=embedder_gpu
+                )
+
         else:
             self.embedder = None
         self.polygon = polygon
