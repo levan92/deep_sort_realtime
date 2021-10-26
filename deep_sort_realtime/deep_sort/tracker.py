@@ -199,3 +199,7 @@ class Tracker:
             )
         )
         self._next_id += 1
+
+    def delete_all_tracks(self):
+        self.tracks = []
+        self._next_id = 1

@@ -247,3 +247,6 @@ class DeepSort(object):
             cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
             masked_polys.append(np.array(cropped))
         return masked_polys
+
+    def delete_all_tracks(self):
+        self.tracker.delete_all_tracks()
