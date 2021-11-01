@@ -10,15 +10,18 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 
 ## Dependencies
 
-See `requirements.txt`
+`requirements.txt` gives the default packages required (installs torch/torchvision to use the default mobilenet embedder), modify accordingly.
 
-Main ones are: 
+Main dependencies are:
 
 - Python3
-- NumPy
-- Scipy
-- cv2
-- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow
+- NumPy, `pip install numpy`
+- SciPy, `pip install scipy`
+- cv2, `pip install opencv-python`
+- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow 2+
+  - `pip install torch torchvision`
+  - `pip install tensorflow`
+- (optional) To use CLIP embedder, `pip install git+https://github.com/openai/CLIP.git`
 
 ## Install
 
@@ -69,7 +72,8 @@ When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` 
 - Remove "academic style" offline processing style and implemented it to take in real-time detections and output accordingly.
 - Provides both options of using an in-built appearance feature embedder or to provide embeddings during update
 - Added (pytorch) mobilenetv2 as embedder (torch ftw).
-- Due to special request, tensorflow embedder is available now too (very unwillingly included). 
+- Due to special request, tensorflow embedder is available now too (very unwillingly included).
+- Added [CLIP](https://github.com/openai/CLIP) network from OpenAI as embedder (pytorch).
 - Skip nms completely in preprocessing detections if `nms_max_overlap == 1.0` (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - Now able to override the `Track` class with a custom Track class (that inherits from `Track` class) for custom track logic 
 - Takes in today's date now, which provides date for track naming and facilities track id reset every day, preventing overflow and overly large track ids when system runs for a long time.
@@ -112,6 +116,10 @@ python3 -m unittest
 Default embedder is a pytorch MobilenetV2 (trained on Imagenet).
 
 For convenience (I know it's not exactly best practice) & since the weights file is quite small, it is pushed in this github repo and will be installed to your Python environment when you install deep_sort_realtime.  
+
+#### CLIP
+
+[CLIP](https://github.com/openai/CLIP) is added as another option of embedder due to its proven flexibility and generalisability. Download the CLIP model weights you want at [deep_sort_realtime/embedder/weights/download_clip_wts.sh](deep_sort_realtime/embedder/weights/download_clip_wts.sh) and store the weights at that directory as well.
 
 ### Tensorflow Embedder
 
