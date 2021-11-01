@@ -25,7 +25,7 @@ class Clip_Embedder(object):
     Params
     ------
     - model_name (optional, str) : CLIP model to use
-    - model_wts_path (optional, str): Optional specification of path to CLIP model weights. Defaults to None and look for weights in `deep_sort_realtime/embedder/weights`.
+    - model_wts_path (optional, str): Optional specification of path to CLIP model weights. Defaults to None and look for weights in `deep_sort_realtime/embedder/weights` or clip will download from internet into their own cache.
     - max_batch_size (optional, int) : max batch size for embedder, defaults to 16
     - bgr (optional, Bool) : boolean flag indicating if input frames are bgr or not, defaults to True
     - gpu (optional, Bool) : boolean flag indicating if gpu is enabled or not, defaults to True
@@ -50,10 +50,6 @@ class Clip_Embedder(object):
                 model_wts_path = str(weights_path)
             else:
                 model_wts_path = model_name
-
-        assert os.path.exists(
-            model_wts_path
-        ), f"Mobilenetv2 model path {model_wts_path} does not exists!"
 
         self.device = "cuda" if gpu else "cpu"
         self.model, self.img_preprocess = clip.load(model_wts_path, device=self.device)
@@ -101,6 +97,5 @@ class Clip_Embedder(object):
             batch = torch.stack(this_batch, 0)
             with torch.no_grad():
                 feats = self.model.encode_image(batch)
-            all_feats.extend(feats)
-        all_feats_tensor = torch.stack(all_feats, 0)
-        return [feat.cpu().numpy() for feat in all_feats_tensor]
+            all_feats.extend(feats.cpu().data.numpy())
+        return all_feats
