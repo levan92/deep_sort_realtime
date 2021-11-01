@@ -1,3 +1,4 @@
+import os
 import logging
 from pathlib import Path
 
@@ -24,22 +25,38 @@ class Clip_Embedder(object):
     Params
     ------
     - model_name (optional, str) : CLIP model to use
+    - model_wts_path (optional, str): Optional specification of path to CLIP model weights. Defaults to None and look for weights in `deep_sort_realtime/embedder/weights`.
     - max_batch_size (optional, int) : max batch size for embedder, defaults to 16
     - bgr (optional, Bool) : boolean flag indicating if input frames are bgr or not, defaults to True
     - gpu (optional, Bool) : boolean flag indicating if gpu is enabled or not, defaults to True
     """
-    def __init__(self, model_name="ViT-B/32", max_batch_size=16, bgr=True, gpu=True):
-        assert model_name in clip.available_models()
 
-        weights_name = model_name.replace("/", "-")
-        weights_path = Path(__file__).parent.resolve() / "weights" / f"{weights_name}.pt"
-        if weights_path.is_file():
-            weights = str(weights_path)
-        else:
-            weights = model_name
+    def __init__(
+        self,
+        model_name="ViT-B/32",
+        model_wts_path=None,
+        max_batch_size=16,
+        bgr=True,
+        gpu=True,
+    ):
+        if model_wts_path is None:
+            assert model_name in clip.available_models()
+
+            weights_name = model_name.replace("/", "-")
+            weights_path = (
+                Path(__file__).parent.resolve() / "weights" / f"{weights_name}.pt"
+            )
+            if weights_path.is_file():
+                model_wts_path = str(weights_path)
+            else:
+                model_wts_path = model_name
+
+        assert os.path.exists(
+            model_wts_path
+        ), f"Mobilenetv2 model path {model_wts_path} does not exists!"
 
         self.device = "cuda" if gpu else "cpu"
-        self.model, self.img_preprocess = clip.load(weights, device=self.device)
+        self.model, self.img_preprocess = clip.load(model_wts_path, device=self.device)
         self.model.eval()
 
         self.max_batch_size = max_batch_size
@@ -53,7 +70,7 @@ class Clip_Embedder(object):
 
         zeros = np.zeros((100, 100, 3), dtype=np.uint8)
         self.predict([zeros])  # warmup
-        
+
     def predict(self, np_images):
         """
         batch inference
@@ -74,7 +91,10 @@ class Clip_Embedder(object):
         if self.bgr:
             np_images = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in np_images]
 
-        pil_images = [self.img_preprocess(Image.fromarray(rgb)).to(self.device) for rgb in np_images]
+        pil_images = [
+            self.img_preprocess(Image.fromarray(rgb)).to(self.device)
+            for rgb in np_images
+        ]
 
         all_feats = []
         for this_batch in _batch(pil_images, bs=self.max_batch_size):

@@ -9,10 +9,15 @@ GPU = torch.cuda.is_available()
 
 try:
     import tensorflow
-
     TF_INSTALLED = True
 except ModuleNotFoundError:
     TF_INSTALLED = False
+
+try:
+    import clip
+    CLIP_INSTALLED = True
+except ModuleNotFoundError:
+    CLIP_INSTALLED = False
 
 
 def test_embedder_generic(Embedder_object, thresh=10, gpu=GPU):
@@ -77,12 +82,14 @@ class TestModule(unittest.TestCase):
         print("Testing tf embedder in cpu")
         return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
 
+    @unittest.skipIf(not CLIP_INSTALLED, "CLIP is not installed")
     def test_embedder_clip(self):
         from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
 
         print("Testing CLIP embedder")
         return test_embedder_generic(Clip_Embedder, thresh=8)
 
+    @unittest.skipIf(not CLIP_INSTALLED, "CLIP is not installed")
     def test_embedder_clip_cpu(self):
         from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
 
