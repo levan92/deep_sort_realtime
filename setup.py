@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="deep-sort-realtime",
-    version="1.1",
+    version="1.2",
     author="levan92",
     author_email="lingevan0208@gmail.com",
     description="A more realtime adaptation of Deep SORT",
@@ -22,5 +22,6 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
+        "opencv-python",
     ],
 )
