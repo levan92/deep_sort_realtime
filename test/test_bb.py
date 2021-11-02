@@ -3,9 +3,13 @@ import unittest
 import time
 from datetime import datetime
 
-import torch
-
-GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
+try:
+    import torch
+    GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
+    TORCH_INSTALLED = True
+except ModuleNotFoundError:
+    GPU = False
+    TORCH_INSTALLED = False
 
 
 class TestModule(unittest.TestCase):
@@ -16,11 +20,17 @@ class TestModule(unittest.TestCase):
         import numpy as np
 
         today = datetime.now().date()
+        if TORCH_INSTALLED: 
+            embedder = 'mobilenet'
+            embeds = None
+        else: 
+            embedder = None
+
         tracker = DeepSort(
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder='mobilenet',
+            embedder=embedder,
             today=today,
             embedder_gpu=GPU,
         )
@@ -33,12 +43,14 @@ class TestModule(unittest.TestCase):
             ([0, 0, 50, 50], 0.5, "person"),
             ([50, 50, 50, 50], 0.5, "person"),
         ]
-        embeds1 = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.0, 1.0, 0.5, -0.5])]
-        # tracks = tracker.update_tracks(detections1, embeds=embeds1)
 
+        if embedder is None:
+            embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.0, 1.0, 0.5, -0.5])]
+        
         tracks = tracker.update_tracks(
-            detections1, frame=frame1, today=datetime.now().date()
+            detections1, frame=frame1, today=datetime.now().date(), embeds=embeds
         )
+        
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
@@ -51,11 +63,14 @@ class TestModule(unittest.TestCase):
             ([10, 10, 60, 60], 0.8, "person"),
             ([60, 50, 50, 50], 0.7, "person"),
         ]
-        embeds2 = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
-        # tracks = tracker.update_tracks(detections2, embeds=embeds2)
+        
+        if embedder is None:
+            embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
+
         tracks = tracker.update_tracks(
-            detections2, frame=frame2, today=datetime.now().date()
+            detections2, frame=frame2, today=datetime.now().date(), embeds=embeds
         )
+
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
@@ -68,10 +83,11 @@ class TestModule(unittest.TestCase):
             ([20, 20, 70, 70], 0.8, "person"),
             ([70, 50, 50, 50], 0.7, "person"),
         ]
-        embeds3 = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
-        # tracks = tracker.update_tracks(detections3, embeds=embeds3)
+        if embedder is None:
+            embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
+
         tracks = tracker.update_tracks(
-            detections3, frame=frame3, today=datetime.now().date()
+            detections3, frame=frame3, today=datetime.now().date(), embeds=embeds
         )
         for track in tracks:
             print(track.track_id)
@@ -82,9 +98,11 @@ class TestModule(unittest.TestCase):
         # assume new frame
         frame4 = frame1
         detections4 = [([10, 10, 60, 60], 0.8, "person")]
-        embeds4 = [np.array([0.1, 0.1, 0.1, 0.1])]
-        # tracks = tracker.update_tracks(detections4, embeds=embeds4)
-        tracks = tracker.update_tracks(detections4, frame=frame4)
+        
+        if embedder is None:
+            embeds = [np.array([0.1, 0.1, 0.1, 0.1])]
+
+        tracks = tracker.update_tracks(detections4, frame=frame4, embeds=embeds)
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
@@ -99,11 +117,18 @@ class TestModule(unittest.TestCase):
 
         import numpy as np
 
+        if TORCH_INSTALLED: 
+            embedder = 'mobilenet'
+            embeds = None
+        else: 
+            embedder = None
+            embeds = [np.array([0., 0., 0., 0.]), np.array([0.1, 0.1, 0.1, 0.1])]
+
         tracker = DeepSort(
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder='mobilenet',
+            embedder=embedder,
             polygon=True,
             embedder_gpu=GPU,
         )
@@ -118,7 +143,7 @@ class TestModule(unittest.TestCase):
             [0, 1],
             [0.5, 0.5],
         ]
-        tracks = tracker.update_tracks(detections1, frame=frame1)
+        tracks = tracker.update_tracks(detections1, frame=frame1, embeds=embeds)
 
         correct_ans = [
             np.array([0.0, 0.0, 11.0, 11.0]),
@@ -139,7 +164,7 @@ class TestModule(unittest.TestCase):
             [0, 1],
             [0.5, 0.6],
         ]
-        tracks = tracker.update_tracks(detections2, frame=frame2)
+        tracks = tracker.update_tracks(detections2, frame=frame2, embeds=embeds)
 
         correct_ans = [
             np.array([0.0, 0.0, 15.33884298, 15.33884298]),
@@ -160,7 +185,7 @@ class TestModule(unittest.TestCase):
             [0, 3],
             [0.5, 0.6],
         ]
-        tracks = tracker.update_tracks(detections3, frame=frame3)
+        tracks = tracker.update_tracks(detections3, frame=frame3, embeds=embeds)
 
         correct_ans = [
             np.array([0.0, 0.0, 16.12303476, 16.12303476]),
@@ -184,7 +209,7 @@ class TestModule(unittest.TestCase):
             [3, 3],
             [0.9, 0.6],
         ]
-        tracks = tracker.update_tracks(detections4, frame=frame4)
+        tracks = tracker.update_tracks(detections4, frame=frame4, embeds=embeds)
 
         correct_ltwh_ans = [
             np.array([-1.65656289, 3.48914218, 19.63792898, 19.81394538]),

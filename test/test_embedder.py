@@ -3,21 +3,32 @@ from pathlib import Path
 
 pardir = Path(__file__).parent
 
-import torch
 
-GPU = torch.cuda.is_available()
+try:
+    import torch
+    TORCH_INSTALLED = True
+    GPU = torch.cuda.is_available()
+except ModuleNotFoundError:
+    TORCH_INSTALLED = False
+    CLIP_INSTALLED = False
+    GPU = False
+
+if TORCH_INSTALLED: 
+    try:
+        import clip
+        CLIP_INSTALLED = True
+    except ModuleNotFoundError:
+        CLIP_INSTALLED = False
 
 try:
     import tensorflow
     TF_INSTALLED = True
+    if not GPU:
+        from tensorflow.python.client import device_lib
+        gpus = [ x.name for x in device_lib.list_local_devices() if x.device_type == 'GPU' ]
+        GPU = len(gpus) > 0
 except ModuleNotFoundError:
     TF_INSTALLED = False
-
-try:
-    import clip
-    CLIP_INSTALLED = True
-except ModuleNotFoundError:
-    CLIP_INSTALLED = False
 
 
 def test_embedder_generic(Embedder_object, thresh=0.2, gpu=GPU):
@@ -57,12 +68,14 @@ def test_embedder_generic(Embedder_object, thresh=0.2, gpu=GPU):
 
 
 class TestModule(unittest.TestCase):
+    @unittest.skipIf(not TORCH_INSTALLED, "Tensorflow is not installed")
     def test_embedder_torch(self):
         from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder
 
         print("Testing pytorch embedder")
         return test_embedder_generic(MobileNetv2_Embedder)
 
+    @unittest.skipIf(not TORCH_INSTALLED, "Tensorflow is not installed")
     def test_embedder_torch_cpu(self):
         from deep_sort_realtime.embedder.embedder_pytorch import MobileNetv2_Embedder
 

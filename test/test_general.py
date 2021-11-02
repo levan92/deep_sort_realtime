@@ -2,9 +2,13 @@ import os
 import unittest
 from datetime import datetime
 
-import torch
-
-GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
+try:
+    import torch
+    GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
+    TORCH_INSTALLED = True
+except ModuleNotFoundError:
+    GPU = False
+    TORCH_INSTALLED = False
 
 try:
     import clip
@@ -14,6 +18,7 @@ except ModuleNotFoundError:
 
 class TestModule(unittest.TestCase):
 
+    @unittest.skipIf(not TORCH_INSTALLED, "Tensorflow is not installed")
     def test_base(self):
 
         from deep_sort_realtime.deepsort_tracker import DeepSort
