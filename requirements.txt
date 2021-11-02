@@ -7,4 +7,3 @@ scipy==1.5.4
 torch==1.9.1
 torchvision==0.10.1
 typing-extensions==3.10.0.2
-deep-sort-realtime==1.1
