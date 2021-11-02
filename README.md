@@ -87,7 +87,7 @@ When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` 
 - Added `get_det_supplementary` method to `Track` class, in order to pass detection related info through the track. [Read more here](#storing-supplementary-info-of-original-detection).
 - Other minor adjustments/optimisation of code.
 
-## [From original repo] Highlevel overview of source files in `deep_sort`
+## Highlevel overview of source files in `deep_sort` (from original repo)
 
 In package `deep_sort` is the main tracking code:
 
