@@ -1,0 +1,2 @@
+global-exclude .git* *.h5 *.pt
+global-include mobilenetv2_bottleneck_wts.pt
