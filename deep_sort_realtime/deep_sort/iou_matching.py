@@ -73,12 +73,13 @@ def iou_cost(tracks, detections, track_indices=None, detection_indices=None):
         detection_indices = np.arange(len(detections))
 
     cost_matrix = np.zeros((len(track_indices), len(detection_indices)))
+    candidates = np.asarray([detections[i].ltwh for i in detection_indices])
+
     for row, track_idx in enumerate(track_indices):
         if tracks[track_idx].time_since_update > 1:
             cost_matrix[row, :] = linear_assignment.INFTY_COST
             continue
 
         bbox = tracks[track_idx].to_ltwh()
-        candidates = np.asarray([detections[i].ltwh for i in detection_indices])
         cost_matrix[row, :] = 1.0 - iou(bbox, candidates)
     return cost_matrix
