@@ -11,6 +11,16 @@ from deep_sort_realtime.utils.nms import non_max_suppression
 
 logger = logging.getLogger(__name__)
 
+EMBEDDER_CHOICES = [
+    "mobilenet",
+    "clip_RN50",
+    "clip_RN101",
+    "clip_RN50x4",
+    "clip_RN50x16",
+    "clip_ViT-B/32",
+    "clip_ViT-B/16",
+]
+
 
 class DeepSort(object):
     def __init__(
@@ -20,12 +30,13 @@ class DeepSort(object):
         max_cosine_distance=0.2,
         nn_budget=None,
         override_track_class=None,
-        embedder=True,
+        embedder="mobilenet",
         half=True,
         bgr=True,
+        embedder_gpu=True,
+        embedder_wts=None,
         polygon=False,
         today=None,
-        embedder_gpu=True,
     ):
         """
 
@@ -41,18 +52,21 @@ class DeepSort(object):
             Maximum size of the appearance descriptors, if None, no budget is enforced
         override_track_class : Optional[object] = None
             Giving this will override default Track class, this must inherit Track
-        embedder : Optional[bool] = True
-            Whether to use in-built embedder or not. If False, then embeddings must be given during update
+        embedder : Optional[str] = 'mobilenet'
+            Whether to use in-built embedder or not. If None, then embeddings must be given during update.
+            Choice of ['mobilenet', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
         half : Optional[bool] = True
-            Whether to use half precision for deep embedder
+            Whether to use half precision for deep embedder (applicable for mobilenet only)
         bgr : Optional[bool] = True
             Whether frame given to embedder is expected to be BGR or not (RGB)
+        embedder_gpu: Optional[bool] = True
+            Whether embedder uses gpu or not
+        embedder_wts: Optional[str] = None
+            Optional specification of path to embedder's model weights. Will default to looking for weights in `deep_sort_realtime/embedder/weights`. If deep_sort_realtime is installed as a package and CLIP models is used as embedder, best to provide path.
         polygon: Optional[bool] = False
             Whether detections are polygons (e.g. oriented bounding boxes)
         today: Optional[datetime.date]
             Provide today's date, for naming of tracks
-        embedder_gpu: Optional[bool] = True
-            Whether embedder uses gpu or not
         """
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
@@ -64,14 +78,36 @@ class DeepSort(object):
             override_track_class=override_track_class,
             today=today,
         )
-        if embedder:
-            from deep_sort_realtime.embedder.embedder_pytorch import (
-                MobileNetv2_Embedder as Embedder,
-            )
 
-            self.embedder = Embedder(
-                half=half, max_batch_size=16, bgr=bgr, gpu=embedder_gpu
-            )
+        if embedder is not None:
+            if embedder not in EMBEDDER_CHOICES:
+                raise Exception(f"Embedder {embedder} is not a valid choice.")
+            if embedder == "mobilenet":
+                from deep_sort_realtime.embedder.embedder_pytorch import (
+                    MobileNetv2_Embedder as Embedder,
+                )
+
+                self.embedder = Embedder(
+                    half=half,
+                    max_batch_size=16,
+                    bgr=bgr,
+                    gpu=embedder_gpu,
+                    model_wts_path=embedder_wts,
+                )
+            else:
+                from deep_sort_realtime.embedder.embedder_clip import (
+                    Clip_Embedder as Embedder,
+                )
+
+                model_name = "_".join(embedder.split("_")[1:])
+                self.embedder = Embedder(
+                    model_name=model_name,
+                    model_wts_path=embedder_wts,
+                    max_batch_size=16,
+                    bgr=bgr,
+                    gpu=embedder_gpu,
+                )
+
         else:
             self.embedder = None
         self.polygon = polygon
@@ -234,3 +270,6 @@ class DeepSort(object):
             cropped = masked_image[crop_t:crop_b, crop_l:crop_r].copy()
             masked_polys.append(np.array(cropped))
         return masked_polys
+
+    def delete_all_tracks(self):
+        self.tracker.delete_all_tracks()

@@ -9,15 +9,22 @@ GPU = torch.cuda.is_available()
 
 try:
     import tensorflow
-
     TF_INSTALLED = True
 except ModuleNotFoundError:
     TF_INSTALLED = False
 
+try:
+    import clip
+    CLIP_INSTALLED = True
+except ModuleNotFoundError:
+    CLIP_INSTALLED = False
 
-def test_embedder_generic(Embedder_object, thresh=10, gpu=GPU):
+
+def test_embedder_generic(Embedder_object, thresh=0.2, gpu=GPU):
     import cv2
     import numpy as np
+
+    from deep_sort_realtime.deep_sort.nn_matching import _nn_cosine_distance
 
     imgpath = pardir / "smallapple.jpg"
     imgpath2 = pardir / "rock.jpg"
@@ -39,8 +46,9 @@ def test_embedder_generic(Embedder_object, thresh=10, gpu=GPU):
     emb = Embedder_object(max_batch_size=4, gpu=gpu)
     a, b, c = emb.predict([img, img_rot, img2])
 
-    small = np.linalg.norm(a - b)
-    large = np.linalg.norm(a - c)
+
+    small = _nn_cosine_distance([a], [b])[0]
+    large = _nn_cosine_distance([a], [c])[0]
 
     print(f"close: {small} vs diff: {large}")
     assert small < thresh, f"Small: {small} not small enough"
@@ -76,6 +84,20 @@ class TestModule(unittest.TestCase):
 
         print("Testing tf embedder in cpu")
         return test_embedder_generic(MobileNetv2_Embedder, gpu=False)
+
+    @unittest.skipIf(not CLIP_INSTALLED, "CLIP is not installed")
+    def test_embedder_clip(self):
+        from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
+
+        print("Testing CLIP embedder")
+        return test_embedder_generic(Clip_Embedder)
+
+    @unittest.skipIf(not CLIP_INSTALLED, "CLIP is not installed")
+    def test_embedder_clip_cpu(self):
+        from deep_sort_realtime.embedder.embedder_clip import Clip_Embedder
+
+        print("Testing CLIP embedder")
+        return test_embedder_generic(Clip_Embedder, gpu=False)
 
 
 if __name__ == "__main__":
