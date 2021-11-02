@@ -21,7 +21,7 @@ Main dependencies are:
 - (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow 2+
   - `pip install torch torchvision`
   - `pip install tensorflow`
-- (optional) To use CLIP embedder, `pip install git+https://github.com/openai/CLIP.git`
+- (optional) To use [CLIP](https://github.com/openai/CLIP) embedder, `pip install git+https://github.com/openai/CLIP.git`
 
 ## Install
 
