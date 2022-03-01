@@ -5,6 +5,7 @@ from datetime import datetime
 
 try:
     import torch
+
     GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
     TORCH_INSTALLED = True
 except ModuleNotFoundError:
@@ -20,10 +21,10 @@ class TestModule(unittest.TestCase):
         import numpy as np
 
         today = datetime.now().date()
-        if TORCH_INSTALLED: 
-            embedder = 'mobilenet'
+        if TORCH_INSTALLED:
+            embedder = "mobilenet"
             embeds = None
-        else: 
+        else:
             embedder = None
 
         tracker = DeepSort(
@@ -46,11 +47,11 @@ class TestModule(unittest.TestCase):
 
         if embedder is None:
             embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.0, 1.0, 0.5, -0.5])]
-        
+
         tracks = tracker.update_tracks(
             detections1, frame=frame1, today=datetime.now().date(), embeds=embeds
         )
-        
+
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
@@ -63,7 +64,7 @@ class TestModule(unittest.TestCase):
             ([10, 10, 60, 60], 0.8, "person"),
             ([60, 50, 50, 50], 0.7, "person"),
         ]
-        
+
         if embedder is None:
             embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
 
@@ -98,7 +99,7 @@ class TestModule(unittest.TestCase):
         # assume new frame
         frame4 = frame1
         detections4 = [([10, 10, 60, 60], 0.8, "person")]
-        
+
         if embedder is None:
             embeds = [np.array([0.1, 0.1, 0.1, 0.1])]
 
@@ -117,12 +118,12 @@ class TestModule(unittest.TestCase):
 
         import numpy as np
 
-        if TORCH_INSTALLED: 
-            embedder = 'mobilenet'
+        if TORCH_INSTALLED:
+            embedder = "mobilenet"
             embeds = None
-        else: 
+        else:
             embedder = None
-            embeds = [np.array([0., 0., 0., 0.]), np.array([0.1, 0.1, 0.1, 0.1])]
+            embeds = [np.array([0.0, 0.0, 0.0, 0.0]), np.array([0.1, 0.1, 0.1, 0.1])]
 
         tracker = DeepSort(
             max_age=30,

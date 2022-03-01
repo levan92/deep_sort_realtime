@@ -4,6 +4,7 @@ from datetime import datetime
 
 try:
     import torch
+
     GPU = torch.cuda.is_available() and not os.environ.get("USE_CPU")
     TORCH_INSTALLED = True
 except ModuleNotFoundError:
@@ -12,12 +13,13 @@ except ModuleNotFoundError:
 
 try:
     import clip
+
     CLIP_INSTALLED = True
 except ModuleNotFoundError:
     CLIP_INSTALLED = False
 
-class TestModule(unittest.TestCase):
 
+class TestModule(unittest.TestCase):
     @unittest.skipIf(not TORCH_INSTALLED, "Tensorflow is not installed")
     def test_base(self):
 
@@ -30,7 +32,7 @@ class TestModule(unittest.TestCase):
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder='mobilenet',
+            embedder="mobilenet",
             # embedder_wts='deep_sort_realtime/embedder/weights/mobilenetv2_bottleneck_wts.pt',
             embedder_gpu=GPU,
             today=today,
@@ -65,7 +67,7 @@ class TestModule(unittest.TestCase):
             max_age=30,
             nn_budget=100,
             nms_max_overlap=1.0,
-            embedder='clip_ViT-B/32',
+            embedder="clip_ViT-B/32",
             # embedder_wts='deep_sort_realtime/embedder/weights/ViT-B-32.pt',
             embedder_gpu=GPU,
             today=today,
