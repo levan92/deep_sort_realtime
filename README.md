@@ -90,8 +90,7 @@ When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` 
 
 - Remove "academic style" offline processing style and implemented it to take in real-time detections and output accordingly.
 - Provides both options of using an in-built appearance feature embedder or to provide embeddings during update
-- Added (pytorch) mobilenetv2 as embedder (torch ftw).
-- Due to special request, tensorflow embedder is available now too (very unwillingly included).
+- Added pytorch mobilenetv2 as appearance embedder (tensorflow embedder is also available now too).
 - Added [CLIP](https://github.com/openai/CLIP) network from OpenAI as embedder (pytorch).
 - Skip nms completely in preprocessing detections if `nms_max_overlap == 1.0` (which is the default), in the original repo, nms will still be done even if threshold is set to 1.0 (probably because it was not optimised for speed).
 - Now able to override the `Track` class with a custom Track class (that inherits from `Track` class) for custom track logic
