@@ -68,6 +68,8 @@ for track in tracks:
     ltrb = track.to_ltrb()
 ```
 
+- Look into [`deep_sort_realtime/deepsort_tracker.py`](deep_sort_realtime/deepsort_tracker.py) for more hyperparameters which you can tune to suit your use-case. 
+
 ## Getting bounding box of original detection
 
 The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. However, in some applications, it is better to return the bb values of the original detections the track was associated to at the current round.
