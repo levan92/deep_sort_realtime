@@ -26,6 +26,7 @@ class DeepSort(object):
     def __init__(
         self,
         max_age=30,
+        n_init=3,
         nms_max_overlap=1.0,
         max_cosine_distance=0.2,
         nn_budget=None,
@@ -44,6 +45,8 @@ class DeepSort(object):
         ----------
         max_age : Optional[int] = 30
             Maximum number of missed misses before a track is deleted.
+        n_init : int
+            Number of frames that a track remains in initialization phase. Defaults to 3.
         nms_max_overlap : Optional[float] = 1.0
             Non-maxima suppression threshold: Maximum detection overlap, if is 1.0, nms will be disabled
         max_cosine_distance : Optional[float] = 0.2
@@ -75,6 +78,7 @@ class DeepSort(object):
         self.tracker = Tracker(
             metric,
             max_age=max_age,
+            n_init=n_init,
             override_track_class=override_track_class,
             today=today,
         )
