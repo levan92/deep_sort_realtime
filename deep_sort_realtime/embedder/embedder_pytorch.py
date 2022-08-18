@@ -47,7 +47,7 @@ class MobileNetv2_Embedder(object):
         self.model = MobileNetV2_bottle(input_size=INPUT_WIDTH, width_mult=1.0)
         self.model.load_state_dict(torch.load(model_wts_path))
 
-        self.gpu = gpu
+        self.gpu = gpu and torch.cuda.is_available()
         if self.gpu:
             self.model.cuda()  # loads model to gpu
             self.half = half
