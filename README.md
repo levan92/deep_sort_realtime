@@ -80,7 +80,7 @@ Here we added an `orig` argument to all the `Track.to_*` methods. If `orig` is f
 
 ### Storing supplementary info of original detection
 
-Supplementary info can be pass into the track from the detection. `Detection` class now has an `others` argument to store this and pass it to the associate track during update. Can be retrieved through `Track.get_det_supplementary` method.
+Supplementary info can be pass into the track from the detection. `Detection` class now has an `others` argument to store this and pass it to the associate track during update. Can be retrieved through `Track.get_det_supplementary` method. Can be passed in through `others` argument of `DeepSort.update_tracks`, expects to be a list with same length as `raw_detections`. Examples of when you will this includes passing in corresponding instance segmentation masks, to be consumed when iterating through the tracks output. 
 
 ## Polygon support
 
