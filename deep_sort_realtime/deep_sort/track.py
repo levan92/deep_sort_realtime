@@ -102,7 +102,7 @@ class Track:
         self.det_conf = det_conf
         self.others = others
 
-    def to_tlwh(self, orig=False):
+    def to_tlwh(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older libraries that depend on this.
 
@@ -112,9 +112,9 @@ class Track:
             The KF-predicted bounding box by default.
             If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        return self.to_ltwh(orig=orig)
+        return self.to_ltwh(orig=orig, orig_strict=orig_strict)
 
-    def to_ltwh(self, orig=False):
+    def to_ltwh(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
 
@@ -122,6 +122,8 @@ class Track:
         ------
         orig : bool
             To use original detection (True) or KF predicted (False). Only works for original dets that are horizontal BBs.
+        orig_strict: bool 
+            Only relevant when orig is True. If orig_strict is True, it ONLY outputs original bbs and will not output kalman mean even if original bb is not available. 
 
         Returns
         -------
@@ -130,17 +132,22 @@ class Track:
             If `orig` is True and track is matched to a detection this round, then the original det is returned.
 
         """
-        if orig and self.original_ltwh is not None:
-            return self.original_ltwh.copy()
-        else:
-            ret = self.mean[:4].copy()
-            ret[2] *= ret[3]
-            ret[:2] -= ret[2:] / 2
-            return ret
+        if orig:
+            if self.original_ltwh is None:
+                if orig_strict:
+                    return None
+                # else if not orig_strict, return kalman means below
+            else:
+                return self.original_ltwh.copy()
 
-    def to_tlbr(self, orig=False):
+        ret = self.mean[:4].copy()
+        ret[2] *= ret[3]
+        ret[:2] -= ret[2:] / 2
+        return ret
+
+    def to_tlbr(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(min x, miny, max x,
-        max y)`. This function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older projects that depend on this.
+        max y)`. This original function is POORLY NAMED. But we are keeping the way it works the way it works in order not to break any older projects that depend on this.
         USE THIS AT YOUR OWN RISK. LIESSSSSSSSSS!
         Returns LIES
         -------
@@ -148,9 +155,9 @@ class Track:
             The KF-predicted bounding box by default.
             If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        return self.to_ltrb(orig=orig)
+        return self.to_ltrb(orig=orig, orig_strict=orig_strict)
 
-    def to_ltrb(self, orig=False):
+    def to_ltrb(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(min x, miny, max x,
         max y)`.
 
@@ -165,8 +172,9 @@ class Track:
             The KF-predicted bounding box by default.
             If `orig` is True and track is matched to a detection this round, then the original det is returned.
         """
-        ret = self.to_ltwh(orig=orig)
-        ret[2:] = ret[:2] + ret[2:]
+        ret = self.to_ltwh(orig=orig, orig_strict=orig_strict)
+        if ret is not None:
+            ret[2:] = ret[:2] + ret[2:]
         return ret
 
     def get_det_conf(self):
