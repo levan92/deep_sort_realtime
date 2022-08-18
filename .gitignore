@@ -98,3 +98,5 @@ tools/
 
 *.h5
 *.pt
+
+.DS_Store
