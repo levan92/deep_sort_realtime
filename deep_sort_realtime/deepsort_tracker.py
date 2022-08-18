@@ -1,5 +1,6 @@
 import time
 import logging
+from collections.abc import Iterable
 
 import cv2
 import numpy as np
@@ -129,7 +130,7 @@ class DeepSort(object):
         logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}')
         logger.info(f'- polygon detections : {"No" if polygon is False else "Yes"}')
 
-    def update_tracks(self, raw_detections, embeds=None, frame=None, today=None):
+    def update_tracks(self, raw_detections, embeds=None, frame=None, today=None, others=None):
 
         """Run multi-target tracker on a particular sequence.
 
@@ -145,6 +146,8 @@ class DeepSort(object):
             if embeds not given, Image frame must be given here, in [H,W,C].
         today: Optional[datetime.date]
             Provide today's date, for naming of tracks
+        others: Optional[ List ] = None
+            Other things associated to detections to be stored in tracks, usually, could be corresponding segmentation mask, other associated values, etc. Currently others is ignored with polygon is True.
 
         Returns
         -------
@@ -160,6 +163,9 @@ class DeepSort(object):
             if frame is None:
                 raise Exception("either embeddings or frame must be given!")
 
+        assert isinstance(raw_detections,Iterable)
+        assert len(raw_detections[0][0])==4
+
         if not self.polygon:
             raw_detections = [d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
@@ -167,7 +173,7 @@ class DeepSort(object):
                 embeds = self.generate_embeds(frame, raw_detections)
 
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections(raw_detections, embeds)
+            detections = self.create_detections(raw_detections, embeds, others=others)
         else:
             polygons, bounding_rects = self.process_polygons(raw_detections[0])
 
@@ -176,7 +182,7 @@ class DeepSort(object):
 
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
             detections = self.create_detections_poly(
-                raw_detections, embeds, bounding_rects
+                raw_detections, embeds, bounding_rects,
             )
 
         # Run non-maxima suppression.
@@ -206,11 +212,17 @@ class DeepSort(object):
         crops = self.crop_poly_pad_black(frame, polygons, bounding_rects)
         return self.embedder.predict(crops)
 
-    def create_detections(self, raw_dets, embeds):
+    def create_detections(self, raw_dets, embeds, others=None):
         detection_list = []
-        for raw_det, embed in zip(raw_dets, embeds):
+        for i, (raw_det, embed) in enumerate(zip(raw_dets, embeds)):
             detection_list.append(
-                Detection(raw_det[0], raw_det[1], embed, class_name=raw_det[2])
+                Detection(  
+                    raw_det[0], 
+                    raw_det[1], 
+                    embed, 
+                    class_name=raw_det[2] if len(raw_det)==3 else None,
+                    others = others[i] if isinstance(others, Iterable) else others,
+                )
             )  # raw_det = [bbox, conf_score, class]
         return detection_list
 
