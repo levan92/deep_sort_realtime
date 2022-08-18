@@ -40,7 +40,7 @@ Example usage:
 
 ```python
 from deep_sort_realtime.deepsort_tracker import DeepSort
-tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
+tracker = DeepSort(max_age=5)
 bbs = object_detector.detect(frame) 
 tracks = tracker.update_tracks(bbs, frame=frame) # bbs expected to be a list of detections, each in tuples of ( [left,top,w,h], confidence, detection_class )
 for track in tracks:
@@ -56,7 +56,7 @@ for track in tracks:
 
 ```python
 from deep_sort_realtime.deepsort_tracker import DeepSort
-tracker = DeepSort(max_age=30, nn_budget=70, override_track_class=None)
+tracker = DeepSort(max_age=5)
 bbs = object_detector.detect(frame) # your own object detection
 object_chips = chipper(frame, bbs) # your own logic to crop frame based on bbox values
 embeds = embedder(object_chips) # your own embedder to take in the cropped object chips, and output feature vectors
@@ -75,6 +75,8 @@ for track in tracks:
 The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. However, in some applications, it is better to return the bb values of the original detections the track was associated to at the current round.
 
 Here we added an `orig` argument to all the `Track.to_*` methods. If `orig` is flagged as `True` and this track is associated to a detection this update round, then the bounding box values returned by the method will be that associated to the original detection. Otherwise, it will still return the Kalman predicted values.
+
+`orig_strict` argument in all the `Track.to_*` methods is only active when `orig` is `True`. Flagging `orig_strict=True` will mean it will output `None` when there's no original detection associated to this track at current frame, otherwise normally it will return Kalman predicted values.
 
 ### Storing supplementary info of original detection
 
