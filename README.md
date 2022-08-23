@@ -137,6 +137,22 @@ Default embedder is a pytorch MobilenetV2 (trained on Imagenet).
 
 For convenience (I know it's not exactly best practice) & since the weights file is quite small, it is pushed in this github repo and will be installed to your Python environment when you install deep_sort_realtime.  
 
+#### TorchReID
+
+[Torchreid](https://github.com/KaiyangZhou/deep-person-reid) is a person re-identification library, and is supported here especially useful for extracting features of humans. It provides a zoo of [models](https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO). Select model type to use, note the model name and provide as arguments. Download the corresponding model weights file on the model zoo site and point to the downloaded file. Model 'osnet_ain_x1_0' with domain generalized training on (MS+D+C) is provide by default, together with the corresponding weights. If `embedder='torchreid'` when initalizing `DeepSort` object without specifying `embedder_model_name` or `embedder_wts`, it will default to that.  
+
+```python
+from deep_sort_realtime.deepsort_tracker import DeepSort
+tracker = DeepSort(max_age=5, embedder='torchreid')
+bbs = object_detector.detect(frame) 
+tracks = tracker.update_tracks(bbs, frame=frame) # bbs expected to be a list of detections, each in tuples of ( [left,top,w,h], confidence, detection_class )
+for track in tracks:
+    if not track.is_confirmed():
+        continue
+    track_id = track.track_id
+    ltrb = track.to_ltrb()
+```
+
 #### CLIP
 
 [CLIP](https://github.com/openai/CLIP) is added as another option of embedder due to its proven flexibility and generalisability. Download the CLIP model weights you want at [deep_sort_realtime/embedder/weights/download_clip_wts.sh](deep_sort_realtime/embedder/weights/download_clip_wts.sh) and store the weights at that directory as well, or you can provide your own CLIP weights through `embedder_wts` argument of the `DeepSort` object.
@@ -146,3 +162,19 @@ For convenience (I know it's not exactly best practice) & since the weights file
 Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it.
 
 The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) or run [download script](./deep_sort_realtime/embedder/weights/download_tf_wts.sh). You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
+
+### Example
+
+Example cosine distances between images in `./test/` ("diff": rock vs smallapple, "close": smallapple vs smallapple slightly augmented)
+
+```
+.Testing pytorch embedder
+close: 0.012196660041809082 vs diff: 0.4409685730934143
+
+.Testing Torchreid embedder
+Model: osnet_ain_x1_0
+- params: 2,193,616
+- flops: 978,878,352
+Successfully loaded pretrained weights from "/Users/levan/Workspace/deep_sort_realtime/deep_sort_realtime/embedder/weights/osnet_ain_ms_d_c_wtsonly.pth"
+close: 0.012312591075897217 vs diff: 0.4590487480163574
+```
