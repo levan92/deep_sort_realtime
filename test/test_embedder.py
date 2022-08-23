@@ -21,6 +21,12 @@ if TORCH_INSTALLED:
         CLIP_INSTALLED = True
     except ModuleNotFoundError:
         CLIP_INSTALLED = False
+    
+    try: 
+        import torchreid
+        TORCHREID_INSTALLED = True
+    except ModuleNotFoundError:
+        TORCHREID_INSTALLED = False
 
 try:
     import tensorflow
@@ -116,6 +122,20 @@ class TestModule(unittest.TestCase):
 
         print("Testing CLIP embedder")
         return test_embedder_generic(Clip_Embedder, gpu=False)
+
+    @unittest.skipIf(not TORCHREID_INSTALLED, "Torchreid is not installed")
+    def test_embedder_torchreid(self):
+        from deep_sort_realtime.embedder.embedder_pytorch import TorchReID_Embedder
+
+        print("Testing Torchreid embedder")
+        return test_embedder_generic(TorchReID_Embedder)
+
+    @unittest.skipIf(not TORCHREID_INSTALLED, "Torchreid is not installed")
+    def test_embedder_torchreid_cpu(self):
+        from deep_sort_realtime.embedder.embedder_pytorch import TorchReID_Embedder
+
+        print("Testing Torchreid embedder")
+        return test_embedder_generic(TorchReID_Embedder, gpu=False)
 
 
 if __name__ == "__main__":
