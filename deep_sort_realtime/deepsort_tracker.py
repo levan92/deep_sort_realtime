@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 EMBEDDER_CHOICES = [
     "mobilenet",
+    "torchreid",
     "clip_RN50",
     "clip_RN101",
     "clip_RN50x4",
@@ -36,6 +37,7 @@ class DeepSort(object):
         half=True,
         bgr=True,
         embedder_gpu=True,
+        embedder_model_name=None,
         embedder_wts=None,
         polygon=False,
         today=None,
@@ -58,13 +60,15 @@ class DeepSort(object):
             Giving this will override default Track class, this must inherit Track
         embedder : Optional[str] = 'mobilenet'
             Whether to use in-built embedder or not. If None, then embeddings must be given during update.
-            Choice of ['mobilenet', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
+            Choice of ['mobilenet', 'torchreid', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
         half : Optional[bool] = True
             Whether to use half precision for deep embedder (applicable for mobilenet only)
         bgr : Optional[bool] = True
             Whether frame given to embedder is expected to be BGR or not (RGB)
         embedder_gpu: Optional[bool] = True
             Whether embedder uses gpu or not
+        embedder_model_name: Optional[str] = None
+            Only used when embedder=='torchreid'. This provides which model to use within torchreid library. Check out torchreid's model zoo.
         embedder_wts: Optional[str] = None
             Optional specification of path to embedder's model weights. Will default to looking for weights in `deep_sort_realtime/embedder/weights`. If deep_sort_realtime is installed as a package and CLIP models is used as embedder, best to provide path.
         polygon: Optional[bool] = False
@@ -99,7 +103,17 @@ class DeepSort(object):
                     gpu=embedder_gpu,
                     model_wts_path=embedder_wts,
                 )
-            else:
+            elif embedder == 'torchreid':
+                from deep_sort_realtime.embedder.embedder_pytorch import TorchReID_Embedder as Embedder
+
+                self.embedder = Embedder(
+                    bgr=bgr, 
+                    gpu=embedder_gpu,
+                    model_name=embedder_model_name,
+                    model_wts_path=embedder_wts,
+                )
+
+            elif embedder.startswith('clip_'):
                 from deep_sort_realtime.embedder.embedder_clip import (
                     Clip_Embedder as Embedder,
                 )
@@ -164,9 +178,9 @@ class DeepSort(object):
                 raise Exception("either embeddings or frame must be given!")
 
         assert isinstance(raw_detections,Iterable)
-        assert len(raw_detections[0][0])==4
 
         if not self.polygon:
+            assert len(raw_detections[0][0])==4
             raw_detections = [d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
             if embeds is None:
