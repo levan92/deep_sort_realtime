@@ -44,6 +44,8 @@ class Track:
         Classname of matched detection
     det_conf : Optional float
         Confidence associated with matched detection
+    instance_mask : Optional 
+        Instance mask associated with matched detection
     others : Optional any
         Any supplementary fields related to matched detection
 
@@ -80,6 +82,7 @@ class Track:
         original_ltwh=None,
         det_class=None,
         det_conf=None,
+        instance_mask=None,
         others=None,
     ):
         self.mean = mean
@@ -100,6 +103,7 @@ class Track:
         self.original_ltwh = original_ltwh
         self.det_class = det_class
         self.det_conf = det_conf
+        self.instance_mask = instance_mask
         self.others = others
 
     def to_tlwh(self, orig=False, orig_strict=False):
@@ -189,11 +193,23 @@ class Track:
         """
         return self.det_class
 
+    def get_instance_mask(self):
+        '''
+        Get instance mask associated with detection. Will be None is there are no associated detection this round
+        '''
+        return self.instance_mask
+    
     def get_det_supplementary(self):
         """
         Get supplementary info associated with the detection. Will be None is there are no associated detection this round.
         """
         return self.others
+
+    def get_feature(self):
+        '''
+        Get latest appearance feature
+        '''
+        return self.features[-1]
 
     def predict(self, kf):
         """Propagate the state distribution to the current time step using a
@@ -210,6 +226,7 @@ class Track:
         self.time_since_update += 1
         self.original_ltwh = None
         self.det_conf = None
+        self.instance_mask = None
         self.others = None
 
     def update(self, kf, detection):
@@ -231,6 +248,7 @@ class Track:
         self.features.append(detection.feature)
         self.det_conf = detection.confidence
         self.det_class = detection.class_name
+        self.instance_mask = detection.instance_mask
         self.others = detection.others
 
         self.hits += 1

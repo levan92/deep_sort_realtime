@@ -144,7 +144,7 @@ class DeepSort(object):
         logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}')
         logger.info(f'- polygon detections : {"No" if polygon is False else "Yes"}')
 
-    def update_tracks(self, raw_detections, embeds=None, frame=None, today=None, others=None):
+    def update_tracks(self, raw_detections, embeds=None, frame=None, today=None, others=None, instance_masks=None):
 
         """Run multi-target tracker on a particular sequence.
 
@@ -162,6 +162,8 @@ class DeepSort(object):
             Provide today's date, for naming of tracks
         others: Optional[ List ] = None
             Other things associated to detections to be stored in tracks, usually, could be corresponding segmentation mask, other associated values, etc. Currently others is ignored with polygon is True.
+        instance_masks: Optional [ List ] = None
+            Instance masks corresponding to detections. If given, they are used to filter out background and only use foreground for apperance embedding. Expects numpy boolean mask matrix.
 
         Returns
         -------
@@ -184,10 +186,10 @@ class DeepSort(object):
             raw_detections = [d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
             if embeds is None:
-                embeds = self.generate_embeds(frame, raw_detections)
+                embeds = self.generate_embeds(frame, raw_detections, instance_masks=instance_masks)
 
             # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections(raw_detections, embeds, others=others)
+            detections = self.create_detections(raw_detections, embeds, instance_masks=instance_masks, others=others)
         else:
             polygons, bounding_rects = self.process_polygons(raw_detections[0])
 
@@ -218,15 +220,24 @@ class DeepSort(object):
     def refresh_track_ids(self):
         self.tracker._next_id
 
-    def generate_embeds(self, frame, raw_dets):
-        crops = self.crop_bb(frame, raw_dets)
-        return self.embedder.predict(crops)
+    def generate_embeds(self, frame, raw_dets, instance_masks=None):
+        crops, cropped_inst_masks = self.crop_bb(frame, raw_dets, instance_masks=instance_masks)
+        if cropped_inst_masks is not None:
+            masked_crops = []
+            for crop, mask in zip(crops, cropped_inst_masks):
+                masked_crop = np.zeros_like(crop)
+                masked_crop = masked_crop + np.array([123.675, 116.28, 103.53], dtype=crop.dtype)
+                masked_crop[mask] = crop[mask]
+                masked_crops.append(masked_crop)
+            return self.embedder.predict(masked_crops)
+        else:
+            return self.embedder.predict(crops)
 
     def generate_embeds_poly(self, frame, polygons, bounding_rects):
         crops = self.crop_poly_pad_black(frame, polygons, bounding_rects)
         return self.embedder.predict(crops)
 
-    def create_detections(self, raw_dets, embeds, others=None):
+    def create_detections(self, raw_dets, embeds, instance_masks=None, others=None):
         detection_list = []
         for i, (raw_det, embed) in enumerate(zip(raw_dets, embeds)):
             detection_list.append(
@@ -235,6 +246,7 @@ class DeepSort(object):
                     raw_det[1], 
                     embed, 
                     class_name=raw_det[2] if len(raw_det)==3 else None,
+                    instance_mask = instance_masks[i] if isinstance(instance_masks, Iterable) else instance_masks,
                     others = others[i] if isinstance(others, Iterable) else others,
                 )
             )  # raw_det = [bbox, conf_score, class]
@@ -265,10 +277,14 @@ class DeepSort(object):
         return polygons, bounding_rects
 
     @staticmethod
-    def crop_bb(frame, raw_dets):
+    def crop_bb(frame, raw_dets, instance_masks=None):
         crops = []
         im_height, im_width = frame.shape[:2]
-        for detection in raw_dets:
+        if instance_masks is not None: 
+            masks = []
+        else:
+            masks = None
+        for i, detection in enumerate(raw_dets):
             l, t, w, h = [int(x) for x in detection[0]]
             r = l + w
             b = t + h
@@ -277,7 +293,10 @@ class DeepSort(object):
             crop_t = max(0, t)
             crop_b = min(im_height, b)
             crops.append(frame[crop_t:crop_b, crop_l:crop_r])
-        return crops
+            if instance_masks is not None: 
+                masks.append( instance_masks[i][crop_t:crop_b, crop_l:crop_r] )
+        
+        return crops, masks
 
     @staticmethod
     def crop_poly_pad_black(frame, polygons, bounding_rects):
