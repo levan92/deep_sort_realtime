@@ -106,7 +106,7 @@ When instantiating a `DeepSort` object (as in `deepsort_tracker.py`), `polygon` 
 - Now supports polygon detections. We do not track polygon points per se, but merely convert the polygon to its bounding rectangle for tracking. That said, if embedding is enabled, the embedder works on the crop around the bounding rectangle, with area not covered by the polygon masked away. [Read more here](#polygon-support).
 - The original `Track.to_*` methods for retrieving bounding box values returns only the Kalman predicted values. In some applications, it is better to return the bb values of the original detections the track was associated to at the current round. Added a `orig` argument which can be flagged `True` to get that. [Read more here](#getting-bounding-box-of-original-detection).
 - Added `get_det_supplementary` method to `Track` class, in order to pass detection related info through the track. [Read more here](#storing-supplementary-info-of-original-detection).
-- [As of [2fad967](https://github.com/levan92/deep_sort_realtime/commit/2fad9673771e8e75524917e630e17e0cda3b3e4d)], supports background masking by giving instance mask to `DeepSort.update_tracks`. [Read more here](#background-masking).
+- [As of [2fad967](https://github.com/levan92/deep_sort_realtime/commit/2fad9673771e8e75524917e630e17e0cda3b3e4d)] Supports background masking by giving instance mask to `DeepSort.update_tracks`. [Read more here](#background-masking).
 - Other minor adjustments/optimisation of code.
 
 ## Highlevel overview of source files in `deep_sort` (from original repo)
