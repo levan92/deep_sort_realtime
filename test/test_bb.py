@@ -68,13 +68,20 @@ class TestModule(unittest.TestCase):
         if embedder is None:
             embeds = [np.array([0.1, 0.1, 0.1, 0.1]), np.array([-1.1, 1.0, 0.5, -0.5])]
 
+        masks = [
+            np.random.randint(0, 1, size=frame2.shape[:2], dtype=bool),
+            np.random.randint(0, 1, size=frame2.shape[:2], dtype=bool),
+        ]
+
         tracks = tracker.update_tracks(
-            detections2, frame=frame2, today=datetime.now().date(), embeds=embeds
+            detections2, frame=frame2, today=datetime.now().date(), embeds=embeds, instance_masks=masks,
         )
 
         for track in tracks:
             print(track.track_id)
             print(track.to_tlwh())
+            assert track.get_instance_mask() is not None
+            print(track.get_instance_mask().shape)
 
         print()
         print("FRAME3")
