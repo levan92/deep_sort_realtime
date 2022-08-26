@@ -32,6 +32,7 @@ class DeepSort(object):
         nms_max_overlap=1.0,
         max_cosine_distance=0.2,
         nn_budget=None,
+        gating_only_position=False,
         override_track_class=None,
         embedder="mobilenet",
         half=True,
@@ -56,6 +57,8 @@ class DeepSort(object):
             Gating threshold for cosine distance
         nn_budget :  Optional[int] = None
             Maximum size of the appearance descriptors, if None, no budget is enforced
+        gating_only_position : Optional[bool]
+            Used during gating, comparing KF predicted and measured states. If True, only the x, y position of the state distribution is considered during gating. Defaults to False, where x,y, aspect ratio and height will be considered.
         override_track_class : Optional[object] = None
             Giving this will override default Track class, this must inherit Track
         embedder : Optional[str] = 'mobilenet'
@@ -86,6 +89,7 @@ class DeepSort(object):
             n_init=n_init,
             override_track_class=override_track_class,
             today=today,
+            gating_only_position=gating_only_position,
         )
 
         if embedder is not None:
