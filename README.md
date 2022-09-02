@@ -18,10 +18,10 @@ Main dependencies are:
 - NumPy, `pip install numpy`
 - SciPy, `pip install scipy`
 - cv2, `pip install opencv-python`
-- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision or Tensorflow 2+
+- (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision (for the default MobiletnetV2 embedder) or Tensorflow 2+
   - `pip install torch torchvision`
   - `pip install tensorflow`
-- (optional) To use [Torchreid](https://github.com/KaiyangZhou/deep-person-reid) embedder, `torchreid` Python package needs to be installed. You can follow [installation guide](https://github.com/KaiyangZhou/deep-person-reid#installation) on `Torchreid`'s page. Without using conda, you can simply clone that [repository](https://github.com/KaiyangZhou/deep-person-reid) and do a `python3 -m pip install .` from inside the repo.    
+- (optional) Additionally, to use [Torchreid](https://github.com/KaiyangZhou/deep-person-reid) embedder, `torchreid` Python package needs to be installed. You can follow [installation guide](https://github.com/KaiyangZhou/deep-person-reid#installation) on `Torchreid`'s page. Without using conda, you can simply clone that [repository](https://github.com/KaiyangZhou/deep-person-reid) and do a `python3 -m pip install .` from inside the repo.    
 - (optional) To use [CLIP](https://github.com/openai/CLIP) embedder, `pip install git+https://github.com/openai/CLIP.git`
 
 ## Install
