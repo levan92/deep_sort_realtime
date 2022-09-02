@@ -10,7 +10,7 @@ See their [paper](https://arxiv.org/abs/1703.07402) for more technical informati
 
 ## Dependencies
 
-`requirements.txt` gives the default packages required (installs torch/torchvision to use the default mobilenet embedder), modify accordingly.
+`requirements.txt` gives the default packages required (it installs torch/torchvision to use the default mobilenet embedder), modify accordingly.
 
 Main dependencies are:
 
