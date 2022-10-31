@@ -53,6 +53,16 @@ class TestModule(unittest.TestCase):
             print(track.track_id)
             print(track.to_tlwh())
 
+        print()
+        print("FRAME2 - empty det")
+        detections2 = []
+        tracks = tracker.update_tracks(
+            detections2, frame=frame1, today=datetime.now().date()
+        )
+        for track in tracks:
+            print(track.track_id)
+            print(track.to_tlwh())
+
         return True
 
     @unittest.skipIf(not CLIP_INSTALLED, "CLIP is not installed")

@@ -185,25 +185,28 @@ class DeepSort(object):
 
         assert isinstance(raw_detections,Iterable)
 
-        if not self.polygon:
-            assert len(raw_detections[0][0])==4
-            raw_detections = [d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
+        if len(raw_detections) > 0: 
+            if not self.polygon:
+                assert len(raw_detections[0][0])==4
+                raw_detections = [d for d in raw_detections if d[0][2] > 0 and d[0][3] > 0]
 
-            if embeds is None:
-                embeds = self.generate_embeds(frame, raw_detections, instance_masks=instance_masks)
+                if embeds is None:
+                    embeds = self.generate_embeds(frame, raw_detections, instance_masks=instance_masks)
 
-            # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections(raw_detections, embeds, instance_masks=instance_masks, others=others)
-        else:
-            polygons, bounding_rects = self.process_polygons(raw_detections[0])
+                # Proper deep sort detection objects that consist of bbox, confidence and embedding.
+                detections = self.create_detections(raw_detections, embeds, instance_masks=instance_masks, others=others)
+            else:
+                polygons, bounding_rects = self.process_polygons(raw_detections[0])
 
-            if embeds is None:
-                embeds = self.generate_embeds_poly(frame, polygons, bounding_rects)
+                if embeds is None:
+                    embeds = self.generate_embeds_poly(frame, polygons, bounding_rects)
 
-            # Proper deep sort detection objects that consist of bbox, confidence and embedding.
-            detections = self.create_detections_poly(
-                raw_detections, embeds, bounding_rects,
-            )
+                # Proper deep sort detection objects that consist of bbox, confidence and embedding.
+                detections = self.create_detections_poly(
+                    raw_detections, embeds, bounding_rects,
+                )
+        else: 
+            detections = []
 
         # Run non-maxima suppression.
         boxes = np.array([d.ltwh for d in detections])
