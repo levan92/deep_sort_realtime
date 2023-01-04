@@ -27,6 +27,7 @@ EMBEDDER_CHOICES = [
 class DeepSort(object):
     def __init__(
         self,
+        max_iou_distance=0.7,
         max_age=30,
         n_init=3,
         nms_max_overlap=1.0,
@@ -47,10 +48,13 @@ class DeepSort(object):
 
         Parameters
         ----------
+        max_iou_distance : Optional[float] = 0.7
+            Gating threshold on IoU. Associations with cost larger than this value are
+            disregarded. Argument for deep_sort_realtime.deep_sort.tracker.Tracker.
         max_age : Optional[int] = 30
-            Maximum number of missed misses before a track is deleted.
+            Maximum number of missed misses before a track is deleted. Argument for deep_sort_realtime.deep_sort.tracker.Tracker.
         n_init : int
-            Number of frames that a track remains in initialization phase. Defaults to 3.
+            Number of frames that a track remains in initialization phase. Defaults to 3. Argument for deep_sort_realtime.deep_sort.tracker.Tracker.
         nms_max_overlap : Optional[float] = 1.0
             Non-maxima suppression threshold: Maximum detection overlap, if is 1.0, nms will be disabled
         max_cosine_distance : Optional[float] = 0.2
@@ -60,7 +64,7 @@ class DeepSort(object):
         gating_only_position : Optional[bool]
             Used during gating, comparing KF predicted and measured states. If True, only the x, y position of the state distribution is considered during gating. Defaults to False, where x,y, aspect ratio and height will be considered.
         override_track_class : Optional[object] = None
-            Giving this will override default Track class, this must inherit Track
+            Giving this will override default Track class, this must inherit Track. Argument for deep_sort_realtime.deep_sort.tracker.Tracker.
         embedder : Optional[str] = 'mobilenet'
             Whether to use in-built embedder or not. If None, then embeddings must be given during update.
             Choice of ['mobilenet', 'torchreid', 'clip_RN50', 'clip_RN101', 'clip_RN50x4', 'clip_RN50x16', 'clip_ViT-B/32', 'clip_ViT-B/16']
@@ -77,7 +81,7 @@ class DeepSort(object):
         polygon: Optional[bool] = False
             Whether detections are polygons (e.g. oriented bounding boxes)
         today: Optional[datetime.date]
-            Provide today's date, for naming of tracks
+            Provide today's date, for naming of tracks. Argument for deep_sort_realtime.deep_sort.tracker.Tracker.
         """
         self.nms_max_overlap = nms_max_overlap
         metric = nn_matching.NearestNeighborDistanceMetric(
@@ -85,6 +89,7 @@ class DeepSort(object):
         )
         self.tracker = Tracker(
             metric,
+            max_iou_distance=max_iou_distance,
             max_age=max_age,
             n_init=n_init,
             override_track_class=override_track_class,
