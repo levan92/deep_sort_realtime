@@ -26,7 +26,7 @@ Main dependencies are:
 
 ## Install
 
-- from [PyPI](https://pypi.org/project/deep-sort-realtime/) via `pip3 install deep-sort-realtime`
+- from [PyPI](https://pypi.org/project/deep-sort-realtime/) via `pip3 install deep-sort-realtime` or `python3 -m pip install deep-sort-realtime`
 - or, clone this repo & install deep-sort-realtime as a python package using `pip` or as an editable package if you like (`-e` flag)
 
 ```bash
