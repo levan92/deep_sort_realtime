@@ -94,8 +94,11 @@ class Track:
 
         self.state = TrackState.Tentative
         self.features = []
+        self.latest_feature = None
         if feature is not None:
             self.features.append(feature)
+            self.latest_feature = feature
+
 
         self._n_init = n_init
         self._max_age = max_age
@@ -209,7 +212,7 @@ class Track:
         '''
         Get latest appearance feature
         '''
-        return self.features[-1]
+        return self.latest_feature
 
     def predict(self, kf):
         """Propagate the state distribution to the current time step using a
@@ -246,6 +249,7 @@ class Track:
             self.mean, self.covariance, detection.to_xyah()
         )
         self.features.append(detection.feature)
+        self.latest_feature = detection.feature
         self.det_conf = detection.confidence
         self.det_class = detection.class_name
         self.instance_mask = detection.instance_mask
