@@ -165,6 +165,15 @@ Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to
 
 The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) or run [download script](./deep_sort_realtime/embedder/weights/download_tf_wts.sh). You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
 
+### Ascend Embedder
+
+Available now at `deep_sort_realtime/embedder/embedder_npu.py`, as alternative to (the default) pytorch embedder. Tested on CANN 6.2RC1 and MindX SDK 5.0RC1 with Ascend310P chip. You need to make your own code change to use it.
+
+The om MobilenetV2 model (pretrained on imagenet) are convert form tf MobilenetV2 model in onnx format.Download tf MobilenetV2 weights first and use `deep_sort_realtime/embedder/weights/mobv2_keras_onnx.py` and `deep_sort_realtime/embedder/weights/mobv2_tfonnx2om.sh` to convert. You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
+
+>You may change some setting in `mobv2_tfonnx2om.sh` with actual chip using.
+TODO:mutil batch assemble with best performance
+
 ### Background Masking 
 
 If instance mask is given during `DeepSort.update_tracks` with no external appearance embeddings given, the mask will be used to mask out the background of the corresponding detection crop so that only foreground information goes into the embedder. This reduces background bias.  
