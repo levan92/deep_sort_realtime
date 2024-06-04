@@ -92,7 +92,7 @@ class Track:
         self.age = 1
         self.time_since_update = 0
 
-        self.state = TrackState.Confirmed
+        self.state = TrackState.Confirmed  # we don't want to wait, mark them confirmed
         self.features = []
         self.latest_feature = None
         if feature is not None:
@@ -279,7 +279,7 @@ class Track:
         #         if self.state == TrackState.Tentative:
         #             self.state = TrackState.Deleted
         #         elif self.time_since_update > self._max_age:
-        self.state = TrackState.Deleted
+        self.state = TrackState.Deleted  # because we don't wand 'missed' tracks, remove them immediately
 
     def is_tentative(self):
         """Returns True if this track is tentative (unconfirmed)."""

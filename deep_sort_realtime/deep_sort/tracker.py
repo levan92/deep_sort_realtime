@@ -137,6 +137,7 @@ class Tracker:
 
             return cost_matrix
 
+        # first we match all tracks and all detections by IoU
         (
             matches_iou,
             unmatched_tracks_iou,  # those who didn't match by IoU
@@ -148,6 +149,7 @@ class Tracker:
             detections
         )
 
+        # then we leave only those track matches that are recent
         iou_emb_track_candidates = [
             k for k, _ in matches_iou if self.tracks[k].time_since_update == 1
         ]
@@ -155,6 +157,7 @@ class Tracker:
             k for k, _ in matches_iou if self.tracks[k].time_since_update != 1
         ]
         iou_emb_detection_candidates = [k for _, k in matches_iou]
+        # then we match by embeddings
         (
             matches_iou_emb,
             unmatched_tracks_emb,
@@ -169,6 +172,7 @@ class Tracker:
             iou_emb_detection_candidates
         )
 
+        # we need to wrap in lists because they might be empty
         unmatched_tracks = list(set(list(unmatched_tracks_iou) + list(unmatched_tracks_iou_time) + list(unmatched_tracks_emb)))
         unmatched_detections = list(set(list(unmatched_detections_iou) + list(unmatched_detections_emb)))
         return matches_iou_emb, unmatched_tracks, unmatched_detections
