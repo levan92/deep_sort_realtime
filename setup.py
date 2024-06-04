@@ -18,14 +18,6 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(exclude=("test",)),
-    package_data={
-        "deep_sort_realtime.embedder": [
-            "weights/mobilenetv2_bottleneck_wts.pt",
-            "weights/osnet_ain_ms_d_c_wtsonly.pth"
-            "weights/download_clip_wts.sh",
-            "weights/download_tf_wts.sh",
-        ]
-    },
     install_requires=[
         "numpy",
         "scipy",

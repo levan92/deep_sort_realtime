@@ -92,7 +92,7 @@ class Track:
         self.age = 1
         self.time_since_update = 0
 
-        self.state = TrackState.Tentative
+        self.state = TrackState.Confirmed
         self.features = []
         self.latest_feature = None
         if feature is not None:
@@ -108,6 +108,13 @@ class Track:
         self.det_conf = det_conf
         self.instance_mask = instance_mask
         self.others = others
+
+        self.last_seen_ltrb = self.to_ltrb(orig=True, orig_strict=True)
+        self.ltrb_history = []
+        if self.last_seen_ltrb is not None:
+            self.ltrb_history.append(self.last_seen_ltrb)
+        self.status = 'new'
+        self.switch = None
 
     def to_tlwh(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(top left x, top left y,
@@ -232,6 +239,8 @@ class Track:
         self.instance_mask = None
         self.others = None
 
+        self.status = 'missed'
+
     def update(self, kf, detection):
         """Perform Kalman filter measurement update step and update the feature
         cache.
@@ -261,12 +270,16 @@ class Track:
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
             self.state = TrackState.Confirmed
 
+        self.last_seen_ltrb = self.to_ltrb(orig=True, orig_strict=True)
+        self.ltrb_history.append(self.last_seen_ltrb)
+        self.status = 'ok'
+
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step)."""
-        if self.state == TrackState.Tentative:
-            self.state = TrackState.Deleted
-        elif self.time_since_update > self._max_age:
-            self.state = TrackState.Deleted
+        #         if self.state == TrackState.Tentative:
+        #             self.state = TrackState.Deleted
+        #         elif self.time_since_update > self._max_age:
+        self.state = TrackState.Deleted
 
     def is_tentative(self):
         """Returns True if this track is tentative (unconfirmed)."""

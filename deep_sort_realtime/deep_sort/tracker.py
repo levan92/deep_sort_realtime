@@ -121,7 +121,7 @@ class Tracker:
                 continue
             features += track.features
             targets += [track.track_id for _ in track.features]
-            track.features = []
+            track.features = [track.features[-1]]
         self.metric.partial_fit(
             np.asarray(features), np.asarray(targets), active_targets
         )
@@ -137,49 +137,41 @@ class Tracker:
 
             return cost_matrix
 
-        # Split track set into confirmed and unconfirmed tracks.
-        confirmed_tracks = [i for i, t in enumerate(self.tracks) if t.is_confirmed()]
-        unconfirmed_tracks = [
-            i for i, t in enumerate(self.tracks) if not t.is_confirmed()
-        ]
-
-        # Associate confirmed tracks using appearance features.
         (
-            matches_a,
-            unmatched_tracks_a,
-            unmatched_detections,
+            matches_iou,
+            unmatched_tracks_iou,  # those who didn't match by IoU
+            unmatched_detections_iou,  # those who didn't match by IoU
+        ) = linear_assignment.min_cost_matching(
+            iou_matching.iou_cost,
+            self.max_iou_distance,
+            self.tracks,
+            detections
+        )
+
+        iou_emb_track_candidates = [
+            k for k, _ in matches_iou if self.tracks[k].time_since_update == 1
+        ]
+        unmatched_tracks_iou_time = [
+            k for k, _ in matches_iou if self.tracks[k].time_since_update != 1
+        ]
+        iou_emb_detection_candidates = [k for _, k in matches_iou]
+        (
+            matches_iou_emb,
+            unmatched_tracks_emb,
+            unmatched_detections_emb,
         ) = linear_assignment.matching_cascade(
             gated_metric,
             self.metric.matching_threshold,
             self.max_age,
             self.tracks,
             detections,
-            confirmed_tracks,
+            iou_emb_track_candidates,
+            iou_emb_detection_candidates
         )
 
-        # Associate remaining tracks together with unconfirmed tracks using IOU.
-        iou_track_candidates = unconfirmed_tracks + [
-            k for k in unmatched_tracks_a if self.tracks[k].time_since_update == 1
-        ]
-        unmatched_tracks_a = [
-            k for k in unmatched_tracks_a if self.tracks[k].time_since_update != 1
-        ]
-        (
-            matches_b,
-            unmatched_tracks_b,
-            unmatched_detections,
-        ) = linear_assignment.min_cost_matching(
-            iou_matching.iou_cost,
-            self.max_iou_distance,
-            self.tracks,
-            detections,
-            iou_track_candidates,
-            unmatched_detections,
-        )
-
-        matches = matches_a + matches_b
-        unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
-        return matches, unmatched_tracks, unmatched_detections
+        unmatched_tracks = list(set(list(unmatched_tracks_iou) + list(unmatched_tracks_iou_time) + list(unmatched_tracks_emb)))
+        unmatched_detections = list(set(list(unmatched_detections_iou) + list(unmatched_detections_emb)))
+        return matches_iou_emb, unmatched_tracks, unmatched_detections
 
     def _initiate_track(self, detection):
         mean, covariance = self.kf.initiate(detection.to_xyah())
