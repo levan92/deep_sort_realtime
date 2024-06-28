@@ -1,4 +1,6 @@
 # vim: expandtab:ts=4:sw=4
+from collections import defaultdict
+
 import numpy as np
 
 
@@ -130,7 +132,7 @@ class NearestNeighborDistanceMetric(object):
             raise ValueError("Invalid metric; must be either 'euclidean' or 'cosine'")
         self.matching_threshold = matching_threshold
         self.budget = budget
-        self.samples = {}
+        self.samples = defaultdict(dict)
 
     def partial_fit(self, features, targets, active_targets):
         """Update the distance metric with new data.
@@ -146,10 +148,11 @@ class NearestNeighborDistanceMetric(object):
 
         """
         for feature, target in zip(features, targets):
-            self.samples.setdefault(target, []).append(feature)
+            self.samples[target][hash(str(feature))] = feature
             if self.budget is not None:
-                self.samples[target] = self.samples[target][-self.budget :]
-        self.samples = {k: self.samples[k] for k in active_targets}
+                keys_left = list(self.samples[target])[-self.budget:]
+                self.samples[target] = {key: self.samples[target][key] for key in keys_left}
+        self.samples = defaultdict(dict, {k: self.samples[k] for k in active_targets})
 
     def distance(self, features, targets):
         """Compute distance between features and targets.
@@ -171,5 +174,5 @@ class NearestNeighborDistanceMetric(object):
         """
         cost_matrix = np.zeros((len(targets), len(features)))
         for i, target in enumerate(targets):
-            cost_matrix[i, :] = self._metric(self.samples[target], features)
+            cost_matrix[i, :] = self._metric(list(self.samples[target].values()), features)
         return cost_matrix
