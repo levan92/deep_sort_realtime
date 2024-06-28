@@ -99,7 +99,6 @@ class Track:
             self.features.append(feature)
             self.latest_feature = feature
 
-
         self._n_init = n_init
         self._max_age = max_age
 
@@ -115,6 +114,9 @@ class Track:
             self.ltrb_history.append(self.last_seen_ltrb)
         self.status = 'new'
         self.switch = None
+
+        self.classic_pred_history = []
+        self.track_pred_history = []
 
     def to_tlwh(self, orig=False, orig_strict=False):
         """Get current position in bounding box format `(top left x, top left y,
@@ -273,6 +275,7 @@ class Track:
         self.last_seen_ltrb = self.to_ltrb(orig=True, orig_strict=True)
         self.ltrb_history.append(self.last_seen_ltrb)
         self.status = 'ok'
+        self.track_pred_history.append(detection.class_name)
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step)."""
