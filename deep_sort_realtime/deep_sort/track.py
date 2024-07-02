@@ -270,7 +270,7 @@ class Track:
 
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
-            self.state = TrackState.Confirmed
+            self.mark_confirmed()
 
         self.last_seen_ltrb = self.to_ltrb(orig=True, orig_strict=True)
         self.ltrb_history.append(self.last_seen_ltrb)
@@ -283,6 +283,9 @@ class Track:
         #             self.state = TrackState.Deleted
         #         elif self.time_since_update > self._max_age:
         self.state = TrackState.Deleted  # because we don't wand 'missed' tracks, remove them immediately
+
+    def mark_confirmed(self):
+        self.state = TrackState.Confirmed
 
     def is_tentative(self):
         """Returns True if this track is tentative (unconfirmed)."""

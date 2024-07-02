@@ -152,7 +152,8 @@ class NearestNeighborDistanceMetric(object):
             if self.budget is not None:
                 keys_left = list(self.samples[target])[-self.budget:]
                 self.samples[target] = {key: self.samples[target][key] for key in keys_left}
-        self.samples = defaultdict(dict, {k: self.samples[k] for k in active_targets})
+        # don't remove samples for removed tracks
+        # self.samples = defaultdict(dict, {k: self.samples[k] for k in active_targets})
 
     def distance(self, features, targets):
         """Compute distance between features and targets.

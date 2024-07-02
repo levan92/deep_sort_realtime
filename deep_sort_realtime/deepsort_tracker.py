@@ -25,6 +25,7 @@ class DeepSort(object):
         override_track_class=None,
         polygon=False,
         today=None,
+        restore_removed_anchor_tracks=False
     ):
         """
 
@@ -77,6 +78,7 @@ class DeepSort(object):
             override_track_class=override_track_class,
             today=today,
             gating_only_position=gating_only_position,
+            restore_removed_anchor_tracks=restore_removed_anchor_tracks
         )
         self.embedder = None
         self.polygon = polygon
@@ -94,7 +96,9 @@ class DeepSort(object):
         logger.info(f'- in-build embedder : {"No" if self.embedder is None else "Yes"}')
         logger.info(f'- polygon detections : {"No" if polygon is False else "Yes"}')
 
-    def update_tracks(self, raw_detections, embeds=None, frame=None, today=None, others=None, instance_masks=None):
+    def update_tracks(
+            self, raw_detections, embeds=None, frame=None, today=None, others=None, instance_masks=None, anchor=False
+    ):
 
         """Run multi-target tracker on a particular sequence.
 
@@ -166,7 +170,7 @@ class DeepSort(object):
 
         # Update tracker.
         self.tracker.predict()
-        self.tracker.update(detections, today=today)
+        self.tracker.update(detections, today=today, anchor=anchor)
 
         return self.tracker.tracks
 
