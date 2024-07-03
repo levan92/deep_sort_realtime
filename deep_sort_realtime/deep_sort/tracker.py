@@ -110,9 +110,9 @@ class Tracker:
                 self.removed_anchor_tracks[removed_track_idx].mark_confirmed()
                 # print(f'Restore removed anchor {self.removed_anchor_tracks[removed_track_idx].track_id}')
         for track_idx in unmatched_tracks:
-            if track_idx < len(self.tracks):  # match is in current track
+            if track_idx < len(self.tracks):  # current track is unmatched - remove it
                 self.tracks[track_idx].mark_missed()
-            else:  # if match is in removed track - we don't need to remove it again
+            else:  # if removed track is unmatched - we don't need to remove it again
                 pass
         for detection_idx in unmatched_detections:
             self._initiate_track(detections[detection_idx])
