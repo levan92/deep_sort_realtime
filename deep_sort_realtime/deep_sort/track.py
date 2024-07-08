@@ -262,7 +262,8 @@ class Track:
         self.features.append(detection.feature)
         self.latest_feature = detection.feature
         self.det_conf = detection.confidence
-        self.det_class = detection.class_name
+        if detection.class_name is not None:
+            self.det_class = detection.class_name
         self.instance_mask = detection.instance_mask
         self.others = detection.others
 
