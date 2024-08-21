@@ -163,7 +163,7 @@ for track in tracks:
 
 Available now at `deep_sort_realtime/embedder/embedder_tf.py`, as alternative to (the default) pytorch embedder. Tested on Tensorflow 2.3.1. You need to make your own code change to use it.
 
-The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download from this [link](https://drive.google.com/file/d/1RBroAFc0tmfxgvrh7iXc2e1EK8TVzXkA/view?usp=sharing) or run [download script](./deep_sort_realtime/embedder/weights/download_tf_wts.sh). You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
+The tf MobilenetV2 weights (pretrained on imagenet) are not available in this github repo (unlike the torch one). Download `mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5` from https://github.com/JonathanCMitchell/mobilenet_v2_keras/releases/tag/v1.1. You may drop it into `deep_sort_realtime/embedder/weights/` before pip installing.
 
 ### Background Masking 
 
