@@ -21,7 +21,7 @@ Main dependencies are:
 - (optional) [Embedder](#appearance-embedding-network) requires Pytorch & Torchvision (for the default MobiletnetV2 embedder) or Tensorflow 2+
   - `pip install torch torchvision`
   - `pip install tensorflow`
-- (optional) Additionally, to use [Torchreid](https://github.com/KaiyangZhou/deep-person-reid) embedder, `torchreid` Python package needs to be installed. You can follow [installation guide](https://github.com/KaiyangZhou/deep-person-reid#installation) on `Torchreid`'s page. Without using conda, you can simply clone that [repository](https://github.com/KaiyangZhou/deep-person-reid) and do a `python3 -m pip install .` from inside the repo.    
+- (optional) Additionally, to use [Torchreid](https://github.com/KaiyangZhou/deep-person-reid) embedder, `torchreid` Python package needs to be installed with `pip install torchreid gdown tensorboard`.
 - (optional) To use [CLIP](https://github.com/openai/CLIP) embedder, `pip install git+https://github.com/openai/CLIP.git`
 
 ## Install
@@ -141,7 +141,7 @@ For convenience (I know it's not exactly best practice) & since the weights file
 
 #### TorchReID
 
-[Torchreid](https://github.com/KaiyangZhou/deep-person-reid) is a person re-identification library, and is supported here especially useful for extracting features of humans. `Torchreid` will need to be installed (see [dependencies](#Dependencies) section above) It provides a zoo of [models](https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO). Select model type to use, note the model name and provide as arguments. Download the corresponding model weights file on the model zoo site and point to the downloaded file. Model 'osnet_ain_x1_0' with domain generalized training on (MS+D+C) is provide by default, together with the corresponding weights. If `embedder='torchreid'` when initalizing `DeepSort` object without specifying `embedder_model_name` or `embedder_wts`, it will default to that.  
+[Torchreid](https://github.com/KaiyangZhou/deep-person-reid) is a person re-identification library, and is supported here especially useful for extracting features of humans. `Torchreid` will need to be installed with `pip install torchreid gdown tensorboard`. It provides a zoo of [models](https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO). Select model type to use, note the model name and provide as arguments. Download the corresponding model weights file on the model zoo site and point to the downloaded file. Model 'osnet_ain_x1_0' with domain generalized training on (MS+D+C) is provide by default, together with the corresponding weights. If `embedder='torchreid'` when initalizing `DeepSort` object without specifying `embedder_model_name` or `embedder_wts`, it will default to that.  
 
 ```python
 from deep_sort_realtime.deepsort_tracker import DeepSort
