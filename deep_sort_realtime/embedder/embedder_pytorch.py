@@ -160,7 +160,7 @@ class TorchReID_Embedder(object):
         except ImportError: 
             raise Exception('ImportError: torchreid is not installed, please install and try again or choose another embedder')
         
-        from torchreid.utils import FeatureExtractor
+        from torchreid.reid.utils import FeatureExtractor
         
         if model_name is None: 
             model_name = 'osnet_ain_x1_0'
